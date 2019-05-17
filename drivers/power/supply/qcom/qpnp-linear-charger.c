@@ -10,7 +10,7 @@
  * GNU General Public License for more details.
  *
  */
-#define pr_fmt(fmt)	"CHG: %s: " fmt, __func__
+//#define pr_fmt(fmt)	"CHG: %s: " fmt, __func__
 
 #include <linux/module.h>
 #include <linux/slab.h>
@@ -28,6 +28,7 @@
 #include <linux/debugfs.h>
 #include <linux/regmap.h>
 #include <linux/spmi.h>
+#include "../fan54015.h"
 
 #define CREATE_MASK(NUM_BITS, POS) \
 	((unsigned char) (((1 << (NUM_BITS)) - 1) << (POS)))
@@ -140,6 +141,10 @@ struct qpnp_lbc_irq {
 	unsigned long	disabled;
 	bool            is_wake;
 };
+#if (defined UNISCOPE_DRIVER_L560S) || (defined UNISCOPE_DRIVER_L580)//add L580
+extern void fan54015_enable_chg(void);//zhangbing add
+extern void fan54015_stop_charging(void);//zhangbing add
+#endif
 
 enum {
 	USBIN_VALID = 0,
@@ -147,7 +152,7 @@ enum {
 	USB_CHG_GONE,
 	BATT_PRES,
 	BATT_TEMPOK,
-	CHG_DONE,
+//	CHG_DONE,  zm++
 	CHG_FAILED,
 	CHG_FAST_CHG,
 	CHG_VBAT_DET_LO,
@@ -669,6 +674,7 @@ static int qpnp_lbc_is_chg_gone(struct qpnp_lbc_chip *chip)
 
 	return (rt_sts & CHG_GONE_BIT) ? 1 : 0;
 }
+//extern int in_otg;//zhangbing@uniscope_drv 20170417 add revise displaying charging when plug the otg cable the first time poweron   
 
 static int qpnp_lbc_charger_enable(struct qpnp_lbc_chip *chip, int reason,
 					int enable)
@@ -676,6 +682,10 @@ static int qpnp_lbc_charger_enable(struct qpnp_lbc_chip *chip, int reason,
 	int disabled = chip->charger_disabled;
 	u8 reg_val;
 	int rc = 0;
+//	if(in_otg)//zhangbing@uniscope_drv 20170417 add revise displaying charging when plug the otg cable the first time poweron 
+//	{
+//		disabled = 4;   
+//	}
 
 	pr_debug("reason=%d requested_enable=%d disabled_status=%d\n",
 					reason, enable, disabled);
@@ -1024,7 +1034,7 @@ static int qpnp_lbc_ibatsafe_set(struct qpnp_lbc_chip *chip, int safe_current)
 }
 
 #define QPNP_LBC_IBATMAX_MIN	90
-#define QPNP_LBC_IBATMAX_MAX	1440
+#define QPNP_LBC_IBATMAX_MAX	540//1440
 /*
  * Set maximum current limit from charger
  * ibat =  System current + charging current
@@ -1049,6 +1059,7 @@ static int qpnp_lbc_ibatmax_set(struct qpnp_lbc_chip *chip, int chg_current)
 		pr_err("Failed to set IBAT_MAX\n");
 	else
 		chip->prev_max_ma = chg_current;
+	printk("@@ chip->prev_max_ma = %d \n", chip->prev_max_ma);
 
 	return rc;
 }
@@ -1425,10 +1436,57 @@ static void qpnp_lbc_set_appropriate_current(struct qpnp_lbc_chip *chip)
 		chg_current = min(chg_current,
 			chip->thermal_mitigation[chip->therm_lvl_sel]);
 
-	pr_debug("setting charger current %d mA\n", chg_current);
+	pr_err("@@ setting charger current %d mA\n", chg_current);
 	qpnp_lbc_ibatmax_set(chip, chg_current);
 }
 
+static void qpnp_batt_external_power_changed(struct power_supply *psy)
+{
+#if 0
+	struct qpnp_lbc_chip *chip = container_of(psy, struct qpnp_lbc_chip,
+						batt_psy);
+#endif
+  struct qpnp_lbc_chip *chip = power_supply_get_drvdata(psy);														
+	union power_supply_propval ret = {0,};
+	int current_ma;
+	unsigned long flags;
+	printk("@@ zm++ %s %d \n", __func__, __LINE__);
+
+	spin_lock_irqsave(&chip->ibat_change_lock, flags);
+	if (!chip->bms_psy)
+		chip->bms_psy = power_supply_get_by_name("bms");
+
+	if (qpnp_lbc_is_usb_chg_plugged_in(chip)) {
+		#if 0
+		chip->usb_psy->get_property(chip->usb_psy,
+				POWER_SUPPLY_PROP_CURRENT_MAX, &ret);
+		#endif
+		power_supply_get_property(chip->usb_psy,
+			POWER_SUPPLY_PROP_CURRENT_MAX, &ret);
+		current_ma = ret.intval / 1000;
+
+		if (current_ma == chip->prev_max_ma)
+			goto skip_current_config;
+
+		/* Disable charger in case of reset or suspend event */
+		if (current_ma <= 2 && !chip->cfg_use_fake_battery
+				&& get_prop_batt_present(chip)) {
+			qpnp_lbc_charger_enable(chip, CURRENT, 0);
+			chip->usb_psy_ma = QPNP_CHG_I_MAX_MIN_90;
+			qpnp_lbc_set_appropriate_current(chip);
+		} else {
+			chip->usb_psy_ma = current_ma;
+			printk("@@@ %s current_ma = %d \n", __func__, current_ma);
+			qpnp_lbc_set_appropriate_current(chip);
+			qpnp_lbc_charger_enable(chip, CURRENT, 1);
+		}
+	}
+
+skip_current_config:
+	spin_unlock_irqrestore(&chip->ibat_change_lock, flags);
+	pr_err("zm++ power supply changed batt_psy\n");
+	power_supply_changed(chip->batt_psy);
+}
 static int qpnp_lbc_system_temp_level_set(struct qpnp_lbc_chip *chip,
 								int lvl_sel)
 {
@@ -1785,13 +1843,15 @@ static void qpnp_lbc_parallel_work(struct work_struct *work)
 		goto exit_work;
 	} else {
 		int temp = chip->ichg_now + QPNP_LBC_I_STEP_MA;
+		printk("@@ chip->lbc_max_chg_current = %d \n", chip->lbc_max_chg_current);
 
 		if (temp > chip->lbc_max_chg_current) {
-			pr_debug("ichg_now=%d beyond max_chg_limit=%d - stopping\n",
+			pr_err("ichg_now=%d beyond max_chg_limit=%d - stopping\n",
 				temp, chip->lbc_max_chg_current);
 			goto exit_work;
 		}
 		chip->ichg_now = temp;
+		printk("@@ chip->ichg_now = %d \n", chip->ichg_now);
 		qpnp_lbc_ibatmax_set(chip, chip->ichg_now);
 		pr_debug("ichg_now increased to %d\n", chip->ichg_now);
 	}
@@ -2607,7 +2667,19 @@ static irqreturn_t qpnp_lbc_usbin_valid_irq_handler(int irq, void *_chip)
 	unsigned long flags;
 
 	usb_present = qpnp_lbc_is_usb_chg_plugged_in(chip);
-	pr_debug("usbin-valid triggered: %d\n", usb_present);
+	pr_err("zm++ usbin-valid triggered: %d\n", usb_present);
+	#if (defined UNISCOPE_DRIVER_L560S) || (defined UNISCOPE_DRIVER_L580)//add L580
+		if(usb_present)
+		{
+			fan54015_enable_chg();
+			pr_err("*****line = %d charger plug in\n",__LINE__);
+		}
+		else
+		{
+                        fan54015_stop_charging();
+			pr_err("*****line = %d  charger pull out\n",__LINE__);
+		}
+	#endif 
 
 	if (chip->usb_present ^ usb_present) {
 		chip->usb_present = usb_present;
@@ -3456,6 +3528,8 @@ static int qpnp_lbc_main_probe(struct platform_device *pdev)
 		chip->batt_psy_d.set_property = qpnp_batt_power_set_property;
 		chip->batt_psy_d.property_is_writeable =
 			qpnp_batt_property_is_writeable;
+chip->batt_psy_d.external_power_changed =
+			qpnp_batt_external_power_changed;
 
 		batt_psy_cfg.drv_data = chip;
 		batt_psy_cfg.supplied_to = pm_batt_supplied_to;

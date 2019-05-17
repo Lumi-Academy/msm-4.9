@@ -15,8 +15,7 @@
 /plugin/;
 
 #include "qm215-qrd.dtsi"
-
 / {
 	model = "QRD";
-	qcom,board-id = <0x01000b 4>;
+	qcom,board-id = <0x0b 4>;
 };

@@ -34,7 +34,7 @@
 };
 
 &mdss_dsi0 {
-	vdd-supply = <&pm8937_l17>;
+	//vdd-supply = <&pm8937_l17>;
 	vddio-supply = <&pm8937_l6>;
 };
 
