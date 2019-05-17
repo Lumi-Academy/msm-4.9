@@ -74,6 +74,37 @@
 		pinctrl-1 = <&fpc_reset_high>;
 		pinctrl-2 = <&fpc_int_low>;
 	};
+
+	i2c@78b7000 {
+		status = "ok";
+		focaltech@38 {
+			compatible = "focaltech,fts";
+			reg = <0x38>;
+			interrupt-parent = <&tlmm>;
+			interrupts = <65 0x2008>;
+			vdd-supply = <&pm8916_l17>;
+			vcc_i2c-supply = <&pm8916_l5>;
+			focaltech,irq-gpio = <&tlmm 65 0x00>;
+			focaltech,reset-gpio = <&tlmm 64 0x00>;
+			focaltech,max-touch-number = <5>;
+			focaltech,display-coords = <0 0 720 1520>;/*x_min,y_min,x_max,y_max*/
+			status = "ok";
+		};
+
+	};
+	i2c@78b6000 {
+                status = "ok";
+		fan54015_chg: fan54015_chg@6a {
+			compatible = "fairchild, fan54015_chg";
+			reg = <0x6a>;
+			interrupt-parent = <&tlmm>;
+			interrupts = <13 8>;
+			pinctrl-names = "default";
+			qcom,disable-gpio = <&tlmm 12 0x0>;
+			regulator-name = "fan54015_chg";
+			status = "ok";
+		};
+	};
 };
 
 &sdhc_1 {
@@ -162,17 +193,17 @@
 };
 
 &dsi_panel_pwr_supply {
-	#address-cells = <1>;
+	/*#address-cells = <1>;
 	#size-cells = <0>;
 
-	qcom,panel-supply-entry@0 {
+	qcom,panel-supply-entry@0 {//delete by zhangle for qm215 lcd power.
 		reg = <1>;
 		qcom,supply-name = "vddio";
 		qcom,supply-min-voltage = <1744000>;
 		qcom,supply-max-voltage = <1904000>;
 		qcom,supply-enable-load = <100000>;
 		qcom,supply-disable-load = <100>;
-	};
+	};*/
 	/delete-node/ qcom,panel-supply-entry@1;
 	/delete-node/ qcom,panel-supply-entry@2;
 	/delete-node/ qcom,panel-supply-entry@3;
@@ -190,7 +221,7 @@
 };
 
 &i2c_5 { /* BLSP2 QUP1 (NFC) */
-	status = "ok";
+	status = "disabled";
 	nq@28 {
 		compatible = "qcom,nq-nci";
 		reg = <0x28>;
@@ -216,7 +247,7 @@
 };
 
 &mdss_dsi0 {
-	qcom,dsi-pref-prim-pan = <&dsi_hx8399c_hd_vid>;
+	qcom,dsi-pref-prim-pan = <&dsi_jd9365_hd_video>;
 	pinctrl-names = "mdss_default", "mdss_sleep";
 	pinctrl-0 = <&mdss_dsi_active &mdss_te_active>;
 	pinctrl-1 = <&mdss_dsi_suspend &mdss_te_suspend>;
@@ -249,3 +280,9 @@
 	qcom,mdss-dsi-pan-fps-update =
 		"dfps_immediate_porch_mode_vfp";
 };
+&dsi_jd9365_hd_video {
+	qcom,panel-supply-entries = <&dsi_panel_pwr_supply>;
+	//qcom,esd-check-enabled;
+	qcom,cont-splash-enabled;
+};
+

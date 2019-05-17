@@ -108,11 +108,13 @@ cam_sensor_rear_default: cam_sensor_rear_default {
 	/* RESET, STANDBY */
 	mux {
 		pins = "gpio36", "gpio35";
+		//pins = "gpio36";
 		function = "gpio";
 	};
 
 	config {
 		pins = "gpio36","gpio35";
+		//pins = "gpio36";
 		bias-disable; /* No PULL */
 		drive-strength = <2>; /* 2 MA */
 	};
@@ -122,25 +124,27 @@ cam_sensor_rear_sleep: cam_sensor_rear_sleep {
 	/* RESET, STANDBY */
 	mux {
 		pins = "gpio36","gpio35";
+		//pins = "gpio36";
 		function = "gpio";
 	};
 
 	config {
 		pins = "gpio36","gpio35";
+		//pins = "gpio36";
 		bias-disable; /* No PULL */
 		drive-strength = <2>; /* 2 MA */
 	};
 };
 
 cam_sensor_rear_vdig: cam_sensor_rear_vdig {
-	/* VDIG */
+	/* dual VDIG */
 	mux {
-		pins = "gpio62";
+		pins = "gpio41";
 		function = "gpio";
 	};
 
 	config {
-		pins = "gpio62";
+		pins = "gpio41";
 		bias-disable; /* No PULL */
 		drive-strength = <2>; /* 2 MA */
 	};
@@ -149,12 +153,12 @@ cam_sensor_rear_vdig: cam_sensor_rear_vdig {
 cam_sensor_rear_vdig_sleep: cam_sensor_rear_vdig_sleep {
 	/* VDIG */
 	mux {
-		pins = "gpio62";
+		pins = "gpio41";
 		function = "gpio";
 	};
 
 	config {
-		pins = "gpio62";
+		pins = "gpio41";
 		bias-disable; /* No PULL */
 		drive-strength = <2>; /* 2 MA */
 	};
@@ -218,14 +222,14 @@ cam_sensor_mclk1_sleep: cam_sensor_mclk1_sleep {
 };
 
 cam_sensor_front_default: cam_sensor_front_default {
-	/* RESET, STANDBY */
+	/* dual RESET, STANDBY */
 	mux {
-		pins = "gpio38","gpio50";
+		pins = "gpio38","gpio35";
 		function = "gpio";
 	};
 
 	config {
-		pins = "gpio38","gpio50";
+		pins = "gpio38","gpio35";
 		bias-disable; /* No PULL */
 		drive-strength = <2>; /* 2 MA */
 	};
@@ -234,12 +238,12 @@ cam_sensor_front_default: cam_sensor_front_default {
 cam_sensor_front_sleep: cam_sensor_front_sleep {
 	/* RESET, STANDBY */
 	mux {
-		pins = "gpio38","gpio50";
+		pins = "gpio38","gpio35";
 		function = "gpio";
 	};
 
 	config {
-		pins = "gpio38","gpio50";
+		pins = "gpio38","gpio35";
 		bias-disable; /* No PULL */
 		drive-strength = <2>; /* 2 MA */
 	};

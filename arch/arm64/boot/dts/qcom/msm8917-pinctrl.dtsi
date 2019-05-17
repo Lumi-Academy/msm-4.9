@@ -1495,7 +1495,7 @@
 					output-low;
 				};
 			};
-
+/*
 			front_flash_led_enable: front_flash_led_enable {
 				mux {
 					pins = "gpio50";
@@ -1521,6 +1521,7 @@
 					output-low;
 				};
 			};
+*/		
 		};
 
 		usbc_int_default: usbc_int_default {

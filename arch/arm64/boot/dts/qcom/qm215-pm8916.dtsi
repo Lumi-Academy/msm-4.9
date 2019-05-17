@@ -170,8 +170,9 @@
 };
 
 &mdss_dsi0 {
-	/delete-property/ vdd-supply;
+	vdd-supply = <&pm8916_l17>;
 	vddio-supply = <&pm8916_l6>;
+        qcom,regulator-ldo-mode;
 };
 
 &mdss_dsi {
@@ -185,10 +186,11 @@
 		qcom,phy-supply-entry@0 {
 			reg = <0>;
 			qcom,supply-name = "vddio";
-			qcom,supply-min-voltage = <1744000>;
-			qcom,supply-max-voltage = <1904000>;
+			qcom,supply-min-voltage = <1800000>;
+			qcom,supply-max-voltage = <1800000>;
 			qcom,supply-enable-load = <100000>;
 			qcom,supply-disable-load = <100>;
+			qcom,supply-ulp-load = <0>;
 		};
 	};
 
@@ -203,6 +205,7 @@
 			qcom,supply-max-voltage = <1904000>;
 			qcom,supply-enable-load = <100000>;
 			qcom,supply-disable-load = <100>;
+			qcom,supply-ulp-load = <0>;
 		};
 	};
 };
