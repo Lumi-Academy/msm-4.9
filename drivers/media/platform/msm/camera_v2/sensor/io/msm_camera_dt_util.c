@@ -23,7 +23,8 @@
 	(config_val >= min) && (config_val <= max))
 
 #undef CDBG
-#define CDBG(fmt, args...) pr_debug(fmt, ##args)
+//#define CDBG(fmt, args...) pr_debug(fmt, ##args)
+#define CDBG(fmt, args...) pr_info(fmt, ##args)
 
 int msm_camera_fill_vreg_params(struct camera_vreg_t *cam_vreg,
 	int num_vreg, struct msm_sensor_power_setting *power_setting,
@@ -1454,9 +1455,9 @@ int msm_camera_power_up(struct msm_camera_power_ctrl_t *ctrl,
 				__func__, __LINE__);
 	}
 	for (index = 0; index < ctrl->power_setting_size; index++) {
-		CDBG("%s index %d\n", __func__, index);
+//		pr_err("gxy 1458 %s index %d\n", __func__, index);
 		power_setting = &ctrl->power_setting[index];
-		CDBG("%s type %d\n", __func__, power_setting->seq_type);
+//		pr_err("gxy 1460 %s type %d\n", __func__, power_setting->seq_type);
 		switch (power_setting->seq_type) {
 		case SENSOR_CLK:
 			if (power_setting->seq_val >= ctrl->clk_info_size) {
