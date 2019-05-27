@@ -10,6 +10,26 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  */
+ 
+&soc { 
+	flash0: qcom,camera-flash {
+		cell-index = <0>;
+		compatible = "qcom,qm215-gpio-flash";
+		qcom,flash-type = <2>;
+		gpios = <&tlmm 34 0>,
+			<&tlmm 33 0>,
+			<&tlmm 22 0>;
+		qcom,gpio-req-tbl-num = <0 1 2>;
+		qcom,gpio-req-tbl-flags = <0 0 0>;
+		qcom,gpio-flash-en = <0>;
+		qcom,gpio-flash-now = <1>;
+		qcom,gpio-flash-reset = <2>;
+		qcom,gpio-req-tbl-label = "CAM_FLASH",
+				"CAM_TORCH",
+				"CAM_FLASH_RESET";			
+		status = "ok";
+	};
+};
 &cci {
 	actuator0: qcom,actuator@0 {
 		cell-index = <0>;
@@ -22,7 +42,7 @@
 		qcom,cam-vreg-max-voltage = <2850000>;
 		qcom,cam-vreg-op-mode = <80000>;
 	};
-	/* back */
+	/* back eeprom */
 	eeprom0: qcom,eeprom@0 {
 		cell-index = <0>;
 		compatible = "qcom,eeprom";
@@ -60,21 +80,18 @@
 		clock-names = "cam_src_clk", "cam_clk";
 		qcom,clock-rates = <19200000 0>;
 	};
-	/* front */
+	/* front eeprom */
 	eeprom2: qcom,eeprom@2 {
 		cell-index = <2>;
 		compatible = "qcom,eeprom";
-		reg = <0x02>;
-	        qcom,i2c-freq-mode = <1>;
-    		qcom,slave-addr = <0xA0>;
+		reg = <0x2>;
 		cam_vana-supply = <&pm8916_l16>;
 		cam_vio-supply = <&pm8916_l6>;
 //		cam_vaf-supply = <&pm8916_l10>;
-		qcom,cam-vreg-name = "cam_vio", "cam_vana", "cam_vaf";
-		qcom,cam-vreg-min-voltage = <0 2800000 2850000>;
-		qcom,cam-vreg-max-voltage = <0 2800000 2850000>;
-		qcom,cam-vreg-op-mode = <0 80000 100000>;
-		qcom,gpio-no-mux = <0>;
+		qcom,cam-vreg-name = "cam_vio", "cam_vana";
+		qcom,cam-vreg-min-voltage = <0 2800000>;
+		qcom,cam-vreg-max-voltage = <0 2800000>;
+		qcom,cam-vreg-op-mode = <0 80000>;
 		pinctrl-names = "cam_default", "cam_suspend";
 		pinctrl-0 = <&cam_sensor_mclk2_default
 				&cam_sensor_rear_vdig_qm215
@@ -95,29 +112,16 @@
 			"CAMIF_VDIG2",
 			"CAM_RESET2",
 			"CAM_STANDBY2";
+		qcom,sensor-position = <1>;
+		qcom,sensor-mode = <0>;
 		qcom,cci-master = <0>;
 		status = "ok";
 		clocks = <&clock_gcc clk_mclk2_clk_src>,
 			<&clock_gcc clk_gcc_camss_mclk2_clk>;
 		clock-names = "cam_src_clk", "cam_clk";
-		qcom,clock-rates = <19200000 0>;
-	};
+		qcom,clock-rates = <24000000 0>;
+	};	
 
-	flash0: qcom,camera-flash {
-		cell-index = <0>;
-		compatible = "qcom,qm215-gpio-flash";
-		qcom,flash-type = <2>;
-		gpios = <&tlmm 33 0>,
-			<&tlmm 34 0>;
-		qcom,gpio-req-tbl-num = <0 1>;
-		qcom,gpio-req-tbl-flags = <1 0>;
-		qcom,gpio-flash-en = <0>;
-		qcom,gpio-flash-now = <1>;
-		qcom,gpio-req-tbl-label = "CAM_FLASH",
-				"CAM_TORCH";
-		status = "ok";
-	};
-	
 	/* back */
 	qcom,camera@0 {
 		cell-index = <0>;
@@ -174,7 +178,6 @@
 		qcom,mount-angle = <90>;
 //		qcom,led-flash-src = <&flash1>;
 //		qcom,actuator-src = <&actuator1>;
-//		qcom,eeprom-src = <&eeprom1>; 
 		cam_vana-supply = <&pm8916_l16>;
 		cam_vio-supply = <&pm8916_l6>;
 //		cam_vaf-supply = <&pm8916_l10>;
@@ -219,7 +222,7 @@
 		reg = <0x2>;
 		qcom,csiphy-sd-index = <1>;
 		qcom,csid-sd-index = <1>;
-//		qcom,eeprom-src = <&eeprom2>;
+		qcom,eeprom-src = <&eeprom2>;
 		qcom,mount-angle = <270>;
 		cam_vana-supply = <&pm8916_l16>;
 		cam_vio-supply = <&pm8916_l6>;

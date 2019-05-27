@@ -55,10 +55,12 @@ static int msm_get_read_mem_size
 			return -EINVAL;
 		}
 		for (i = 0; i < eeprom_map->memory_map_size; i++) {
-			if ((eeprom_map->mem_settings[i].i2c_operation == MSM_CAM_READ) 
-				|| (eeprom_map->mem_settings[i].i2c_operation == MSM_CAM_READ_GC5025H)
-				|| (eeprom_map->mem_settings[i].i2c_operation == MSM_CAM_READ_S5K4H7YX))
+			pr_err("%s: gxy58 gc5025 i2c_operation = %d\n",__func__, (int)eeprom_map->mem_settings[i].i2c_operation );	//5025=3
+		
+			if (eeprom_map->mem_settings[i].i2c_operation == MSM_CAM_READ)
+//			if ((eeprom_map->mem_settings[i].i2c_operation == MSM_CAM_READ) || (eeprom_map->mem_settings[i].i2c_operation == MSM_CAM_READ_GC5025H))
 			{
+				pr_err("%s: gxy63 gc5025 size = %d, reg_data = %d\n",__func__, size, eeprom_map->mem_settings[i].reg_data );
 				size += eeprom_map->mem_settings[i].reg_data;
 			}
 		}
@@ -330,7 +332,7 @@ static int eeprom_parse_memory_map(struct msm_eeprom_ctrl_t *e_ctrl,
 {
 	int rc =  0, i, j;
 	uint8_t *memptr;
-#if 1
+#if 0
 	int gc;
 	uint16_t gc_read = 0;
 #endif
@@ -413,52 +415,35 @@ static int eeprom_parse_memory_map(struct msm_eeprom_ctrl_t *e_ctrl,
 				memptr += eeprom_map->mem_settings[i].reg_data;
 			}
 			break;
-#if 1
+#if 0
 			/*add for gc5025 & gc5025h*/
-			case MSM_CAM_READ_GC5025H: {
+			case MSM_CAM_READ_GC5025H: 
+			{
+			    pr_err("%s: gxy422 gc5025 reg_data = %d\n",__func__, eeprom_map->mem_settings[i].reg_data );
+						
 				e_ctrl->i2c_client.addr_type = 1;
-				if(1 == eeprom_map->mem_settings[i].reg_data) {
-					e_ctrl->i2c_client.i2c_func_tbl->i2c_write(
- 						&(e_ctrl->i2c_client), 0xd4,
- 						0x80 | ((eeprom_map->mem_settings[i].reg_addr >> 8) & 0xff),
-						eeprom_map->mem_settings[i].data_type);
-					e_ctrl->i2c_client.i2c_func_tbl->i2c_write(
- 						&(e_ctrl->i2c_client), 0xd5,
- 						eeprom_map->mem_settings[i].reg_addr & 0xff,
-						eeprom_map->mem_settings[i].data_type);
-					e_ctrl->i2c_client.i2c_func_tbl->i2c_write(
- 						&(e_ctrl->i2c_client), 0xf3, 0x20,
-						eeprom_map->mem_settings[i].data_type);
+				if(1 == eeprom_map->mem_settings[i].reg_data) 
+				{
+					e_ctrl->i2c_client.i2c_func_tbl->i2c_write(	&(e_ctrl->i2c_client), 0xd4, 0x80 | ((eeprom_map->mem_settings[i].reg_addr >> 8) & 0xff),	eeprom_map->mem_settings[i].data_type);
+					e_ctrl->i2c_client.i2c_func_tbl->i2c_write(	&(e_ctrl->i2c_client), 0xd5, eeprom_map->mem_settings[i].reg_addr & 0xff, eeprom_map->mem_settings[i].data_type); 
+					e_ctrl->i2c_client.i2c_func_tbl->i2c_write(	&(e_ctrl->i2c_client), 0xf3, 0x20,	eeprom_map->mem_settings[i].data_type);
 					msleep(eeprom_map->mem_settings[i].delay);
-					rc = e_ctrl->i2c_client.i2c_func_tbl->i2c_read(
-						&(e_ctrl->i2c_client), 0xd7, &gc_read,
-						eeprom_map->mem_settings[i].data_type);
+					rc = e_ctrl->i2c_client.i2c_func_tbl->i2c_read(	&(e_ctrl->i2c_client), 0xd7, &gc_read,	eeprom_map->mem_settings[i].data_type);
 					*memptr = (uint8_t)gc_read;
 					memptr++;
 				}
-				else {
-					e_ctrl->i2c_client.i2c_func_tbl->i2c_write(
- 						&(e_ctrl->i2c_client), 0xd4,
- 						0x80 | ((eeprom_map->mem_settings[i].reg_addr >> 8) & 0xff),
-						eeprom_map->mem_settings[i].data_type);
-					e_ctrl->i2c_client.i2c_func_tbl->i2c_write(
- 						&(e_ctrl->i2c_client), 0xd5,
- 						eeprom_map->mem_settings[i].reg_addr & 0xff,
-						eeprom_map->mem_settings[i].data_type);
-					e_ctrl->i2c_client.i2c_func_tbl->i2c_write(
- 						&(e_ctrl->i2c_client), 0xf3, 0x20,
-						eeprom_map->mem_settings[i].data_type);
-					e_ctrl->i2c_client.i2c_func_tbl->i2c_write(
- 						&(e_ctrl->i2c_client), 0xf3, 0x88,
-						eeprom_map->mem_settings[i].data_type);
-					
+				else 
+				{
+					e_ctrl->i2c_client.i2c_func_tbl->i2c_write(	&(e_ctrl->i2c_client), 0xd4,0x80 | ((eeprom_map->mem_settings[i].reg_addr >> 8) & 0xff),  eeprom_map->mem_settings[i].data_type);
+					e_ctrl->i2c_client.i2c_func_tbl->i2c_write( &(e_ctrl->i2c_client), 0xd5,	eeprom_map->mem_settings[i].reg_addr & 0xff,	eeprom_map->mem_settings[i].data_type);
+					e_ctrl->i2c_client.i2c_func_tbl->i2c_write(	&(e_ctrl->i2c_client), 0xf3, 0x20,	eeprom_map->mem_settings[i].data_type);
+					e_ctrl->i2c_client.i2c_func_tbl->i2c_write(	&(e_ctrl->i2c_client), 0xf3, 0x88,	eeprom_map->mem_settings[i].data_type);
 					msleep(eeprom_map->mem_settings[i].delay);
-					
-					for(gc = 0; gc < eeprom_map->mem_settings[i].reg_data; gc++) {
+
+					for(gc = 0; gc < eeprom_map->mem_settings[i].reg_data; gc++) 
+					{
 						msleep(eeprom_map->mem_settings[i].delay);
-						rc = e_ctrl->i2c_client.i2c_func_tbl->i2c_read(
-							&(e_ctrl->i2c_client), 0xd7, &gc_read,
-							eeprom_map->mem_settings[i].data_type);
+						rc = e_ctrl->i2c_client.i2c_func_tbl->i2c_read(	&(e_ctrl->i2c_client), 0xd7, &gc_read,	eeprom_map->mem_settings[i].data_type);
 						if (rc < 0) {
 							pr_err("%s: read failed\n",
 								__func__);
@@ -470,9 +455,7 @@ static int eeprom_parse_memory_map(struct msm_eeprom_ctrl_t *e_ctrl,
 				}
 			}
 			break;
-			
-			case MSM_CAM_READ_S5K4H7YX:
-				break;			
+	
 #endif
 			default:
 				pr_err("%s: %d Invalid i2c operation LC:%d\n",
@@ -1767,7 +1750,7 @@ static int msm_eeprom_platform_probe(struct platform_device *pdev)
 	struct device_node *of_node = pdev->dev.of_node;
 	struct msm_camera_power_ctrl_t *power_info = NULL;
 
-	pr_err("gxy eeprom %s E\n", __func__);
+	pr_err("gxy 1770 eeprom %s E\n", __func__);
 
 	e_ctrl = kzalloc(sizeof(*e_ctrl), GFP_KERNEL);
 	if (!e_ctrl)
@@ -1854,7 +1837,6 @@ static int msm_eeprom_platform_probe(struct platform_device *pdev)
 		goto board_free;
 
 	if (e_ctrl->userspace_probe == 0) {
-		pr_err("gxy eeprom read dts\n");
 		rc = of_property_read_u32(of_node, "qcom,slave-addr",
 			&temp);
 		if (rc < 0) {
