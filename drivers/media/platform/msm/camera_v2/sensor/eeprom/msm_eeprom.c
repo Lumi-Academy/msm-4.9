@@ -156,7 +156,7 @@ static int read_eeprom_memory(struct msm_eeprom_ctrl_t *e_ctrl,
 	struct msm_eeprom_memory_map_t *emap = block->map;
 	struct msm_eeprom_board_info *eb_info;
 	uint8_t *memptr = block->mapdata;
-
+    CDBG("XR*****%s,%d\n",__func__,__LINE__);
 	if (!e_ctrl) {
 		pr_err("%s e_ctrl is NULL", __func__);
 		return -EINVAL;
@@ -184,6 +184,42 @@ static int read_eeprom_memory(struct msm_eeprom_ctrl_t *e_ctrl,
 				return rc;
 			}
 		}
+
+		if (emap[j].saddr.addr) {
+			eb_info->i2c_slaveaddr = 0x80;
+			e_ctrl->i2c_client.cci_client->sid =
+					eb_info->i2c_slaveaddr >> 1;
+			pr_err("qcom,slave-addr = 0x%X\n",
+				eb_info->i2c_slaveaddr);
+		}
+
+		rc = e_ctrl->i2c_client.i2c_func_tbl->i2c_write(
+				&(e_ctrl->i2c_client), 0x0000,
+				0x0, emap[j].page.data_t);
+				msleep(emap[j].page.delay);
+		if (rc < 0) {
+				pr_err("%s: page write failed\n", __func__);
+				return rc;
+		}
+
+		
+		if (emap[j].saddr.addr) {
+			eb_info->i2c_slaveaddr = 0xa0;//emap[j].saddr.addr,这个值是否默认就是设的0x50??
+			e_ctrl->i2c_client.cci_client->sid =
+					eb_info->i2c_slaveaddr >> 1;
+			pr_err("qcom,slave-addr = 0x%X\n",
+				eb_info->i2c_slaveaddr);
+		}
+
+		rc = e_ctrl->i2c_client.i2c_func_tbl->i2c_write(
+				&(e_ctrl->i2c_client), 0x8000,
+				0x10, emap[j].page.data_t);
+				msleep(emap[j].page.delay);
+		if (rc < 0) {
+				pr_err("%s: page write failed\n", __func__);
+				return rc;
+		}
+		
 		if (emap[j].pageen.valid_size) {
 			e_ctrl->i2c_client.addr_type = emap[j].pageen.addr_t;
 			rc = e_ctrl->i2c_client.i2c_func_tbl->i2c_write(
@@ -457,6 +493,31 @@ static int eeprom_parse_memory_map(struct msm_eeprom_ctrl_t *e_ctrl,
 			break;
 	
 #endif
+#if 0	
+			case MSM_CAM_READ_S5K4H7YX: 
+			{		
+				pr_err("%s: gxy437 s5k4h7 reg_data = %d\n",__func__, eeprom_map->mem_settings[i].reg_data );
+				// slave: 0xA0, REG:0x8000, Data:0x4E,   i2c type: 0x1608 
+				
+				
+				// writeIIC (0xb0, 0xc00, 0x04, 0x1608);
+
+					writeIIC(
+					0x80,//I2C地址
+					0x0000,//寄存器，实际随意
+					0x0);//内容，实际随意
+
+					
+					writeIIC(
+					0xA0,//当前I2C地址
+					0x8000,//寄存器，
+					0x10);//内容，
+
+				msleep(100);
+			}
+			break;
+#endif			
+
 			default:
 				pr_err("%s: %d Invalid i2c operation LC:%d\n",
 					__func__, __LINE__, i);

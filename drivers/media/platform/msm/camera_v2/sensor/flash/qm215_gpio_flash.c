@@ -43,7 +43,7 @@ static int qm215_flash_sgm37891_cfg(uint16_t gpio_id, uint16_t level)
 	usleep_range(45, 45);
 
 	/* for level > 5, output current should be same as that of level 0 */
-	if (level > 5)
+	if (level > 7)	//5
 		level = 0;
 
 	for (i = 0; i < level; i++) 
@@ -80,7 +80,7 @@ static int32_t qm215_flash_sgm37891_low(
 		gpio_num_info->gpio_num[SENSOR_GPIO_FL_EN], 
 		gpio_num_info->gpio_num[SENSOR_GPIO_FL_RESET]);
 
-	qm215_flash_sgm37891_cfg(gpio_num_info->gpio_num[SENSOR_GPIO_FL_RESET], 1);
+	qm215_flash_sgm37891_cfg(gpio_num_info->gpio_num[SENSOR_GPIO_FL_RESET], 6);
 	gpio_set_value_cansleep(gpio_num_info->gpio_num[SENSOR_GPIO_FL_NOW],GPIO_OUT_HIGH);
 	usleep_range(20, 20);
 	gpio_set_value_cansleep(gpio_num_info->gpio_num[SENSOR_GPIO_FL_NOW],GPIO_OUT_LOW);
@@ -112,7 +112,7 @@ static int32_t qm215_flash_sgm37891_high(
 		gpio_num_info->gpio_num[SENSOR_GPIO_FL_EN], 
 		gpio_num_info->gpio_num[SENSOR_GPIO_FL_RESET]);
 
-	qm215_flash_sgm37891_cfg(gpio_num_info->gpio_num[SENSOR_GPIO_FL_RESET], 4);
+	qm215_flash_sgm37891_cfg(gpio_num_info->gpio_num[SENSOR_GPIO_FL_RESET], 6);
 	gpio_set_value_cansleep(gpio_num_info->gpio_num[SENSOR_GPIO_FL_NOW],GPIO_OUT_HIGH);
 	usleep_range(130, 130);
 
