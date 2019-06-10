@@ -44,7 +44,6 @@
 		qcom,cam-vreg-op-mode = <80000>;
 	};
 	/* back eeprom */
-/*
 	eeprom0: qcom,eeprom@0 {
 		cell-index = <0>;
 		compatible = "qcom,eeprom";
@@ -82,9 +81,7 @@
 		clock-names = "cam_src_clk", "cam_clk";
 		qcom,clock-rates = <19200000 0>;
 	};
-	*/
 	/* front eeprom */
-	/*
 	eeprom1: qcom,eeprom@1 {
 		cell-index = <1>;
 		compatible = "qcom,eeprom";
@@ -125,7 +122,7 @@
 		clock-names = "cam_src_clk", "cam_clk";
 		qcom,clock-rates = <24000000 0>;
 	};	
-*/
+
 	/* back */
 	qcom,camera@0 {
 		cell-index = <0>;
@@ -136,7 +133,7 @@
 		qcom,mount-angle = <90>;
 		qcom,led-flash-src = <&flash0>;
 		qcom,actuator-src = <&actuator0>;
-	//	qcom,eeprom-src = <&eeprom0>;
+		qcom,eeprom-src = <&eeprom0>;
 		cam_vana-supply = <&pm8916_l16>;
 		cam_vio-supply = <&pm8916_l6>;
 		cam_vaf-supply = <&pm8916_l10>;
@@ -226,7 +223,7 @@
 		reg = <0x1>;
 		qcom,csiphy-sd-index = <1>;
 		qcom,csid-sd-index = <1>;
-//		qcom,eeprom-src = <&eeprom1>;
+		qcom,eeprom-src = <&eeprom1>;
 		qcom,mount-angle = <270>;
 		cam_vana-supply = <&pm8916_l16>;
 		cam_vio-supply = <&pm8916_l6>;
