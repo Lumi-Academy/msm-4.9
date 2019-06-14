@@ -19,8 +19,7 @@
 #include "msm_eeprom.h"
 
 #undef CDBG
-//#define CDBG(fmt, args...) pr_debug(fmt, ##args)
-#define CDBG(fmt, args...) pr_info(fmt, ##args)
+#define CDBG(fmt, args...) pr_debug(fmt, ##args)
 
 DEFINE_MSM_MUTEX(msm_eeprom_mutex);
 #ifdef CONFIG_COMPAT
@@ -55,12 +54,8 @@ static int msm_get_read_mem_size
 			return -EINVAL;
 		}
 		for (i = 0; i < eeprom_map->memory_map_size; i++) {
-			pr_err("%s: gxy58 gc5025 i2c_operation = %d\n",__func__, (int)eeprom_map->mem_settings[i].i2c_operation );	//5025=3
-		
-			if (eeprom_map->mem_settings[i].i2c_operation == MSM_CAM_READ)
-//			if ((eeprom_map->mem_settings[i].i2c_operation == MSM_CAM_READ) || (eeprom_map->mem_settings[i].i2c_operation == MSM_CAM_READ_GC5025H))
-			{
-				pr_err("%s: gxy63 gc5025 size = %d, reg_data = %d\n",__func__, size, eeprom_map->mem_settings[i].reg_data );
+			if (eeprom_map->mem_settings[i].i2c_operation ==
+				MSM_CAM_READ) {
 				size += eeprom_map->mem_settings[i].reg_data;
 			}
 		}
@@ -156,7 +151,7 @@ static int read_eeprom_memory(struct msm_eeprom_ctrl_t *e_ctrl,
 	struct msm_eeprom_memory_map_t *emap = block->map;
 	struct msm_eeprom_board_info *eb_info;
 	uint8_t *memptr = block->mapdata;
-    CDBG("XR*****%s,%d\n",__func__,__LINE__);
+
 	if (!e_ctrl) {
 		pr_err("%s e_ctrl is NULL", __func__);
 		return -EINVAL;
@@ -184,42 +179,6 @@ static int read_eeprom_memory(struct msm_eeprom_ctrl_t *e_ctrl,
 				return rc;
 			}
 		}
-
-		if (emap[j].saddr.addr) {
-			eb_info->i2c_slaveaddr = 0x80;
-			e_ctrl->i2c_client.cci_client->sid =
-					eb_info->i2c_slaveaddr >> 1;
-			pr_err("qcom,slave-addr = 0x%X\n",
-				eb_info->i2c_slaveaddr);
-		}
-
-		rc = e_ctrl->i2c_client.i2c_func_tbl->i2c_write(
-				&(e_ctrl->i2c_client), 0x0000,
-				0x0, emap[j].page.data_t);
-				msleep(emap[j].page.delay);
-		if (rc < 0) {
-				pr_err("%s: page write failed\n", __func__);
-				return rc;
-		}
-
-		
-		if (emap[j].saddr.addr) {
-			eb_info->i2c_slaveaddr = 0xa0;//emap[j].saddr.addr,这个值是否默认就是设的0x50??
-			e_ctrl->i2c_client.cci_client->sid =
-					eb_info->i2c_slaveaddr >> 1;
-			pr_err("qcom,slave-addr = 0x%X\n",
-				eb_info->i2c_slaveaddr);
-		}
-
-		rc = e_ctrl->i2c_client.i2c_func_tbl->i2c_write(
-				&(e_ctrl->i2c_client), 0x8000,
-				0x10, emap[j].page.data_t);
-				msleep(emap[j].page.delay);
-		if (rc < 0) {
-				pr_err("%s: page write failed\n", __func__);
-				return rc;
-		}
-		
 		if (emap[j].pageen.valid_size) {
 			e_ctrl->i2c_client.addr_type = emap[j].pageen.addr_t;
 			rc = e_ctrl->i2c_client.i2c_func_tbl->i2c_write(
@@ -368,10 +327,6 @@ static int eeprom_parse_memory_map(struct msm_eeprom_ctrl_t *e_ctrl,
 {
 	int rc =  0, i, j;
 	uint8_t *memptr;
-#if 0
-	int gc;
-	uint16_t gc_read = 0;
-#endif
 	struct msm_eeprom_mem_map_t *eeprom_map;
 
 	e_ctrl->cal_data.mapdata = NULL;
@@ -400,6 +355,46 @@ static int eeprom_parse_memory_map(struct msm_eeprom_ctrl_t *e_ctrl,
 		CDBG("Slave Addr: 0x%X\n", eeprom_map->slave_addr);
 		CDBG("Memory map Size: %d",
 			eeprom_map->memory_map_size);
+      #if 0
+            if(eeprom_map->slave_addr == 0xa8){
+                e_ctrl->i2c_client.addr_type = 2;
+			    e_ctrl->i2c_client.cci_client->sid = 0xb0 >> 1;
+                rc = e_ctrl->i2c_client.i2c_func_tbl->i2c_write(
+					&(e_ctrl->i2c_client),
+					0x0c00,
+                    0x4,
+					1);
+                msleep(5);
+                if (rc < 0) {
+                    pr_err("%s: zm  write address failed\n",
+                            __func__);
+                }
+            }
+
+            if(eeprom_map->slave_addr == 0xa8){
+            e_ctrl->i2c_client.cci_client->sid = 0xa8 >> 1;   
+            }
+            #endif
+#if 1 
+        if(eeprom_map->slave_addr == 0xa8){
+            e_ctrl->i2c_client.addr_type = 2;
+            e_ctrl->i2c_client.cci_client->sid = 0xa8 >> 1;
+            rc = e_ctrl->i2c_client.i2c_func_tbl->i2c_write(
+                    &(e_ctrl->i2c_client),
+                    0x8000,
+                    0x0,
+                    1);
+            msleep(5);
+            if (rc < 0) {
+                pr_err("%s: zm  write address failed\n",
+                        __func__);
+            }
+        }
+
+        if(eeprom_map->slave_addr == 0xa8){
+            e_ctrl->i2c_client.cci_client->sid = 0xa8 >> 1;   
+        }
+#endif
 		for (i = 0; i < eeprom_map->memory_map_size; i++) {
 			switch (eeprom_map->mem_settings[i].i2c_operation) {
 			case MSM_CAM_WRITE: {
@@ -451,73 +446,6 @@ static int eeprom_parse_memory_map(struct msm_eeprom_ctrl_t *e_ctrl,
 				memptr += eeprom_map->mem_settings[i].reg_data;
 			}
 			break;
-#if 0
-			/*add for gc5025 & gc5025h*/
-			case MSM_CAM_READ_GC5025H: 
-			{
-			    pr_err("%s: gxy422 gc5025 reg_data = %d\n",__func__, eeprom_map->mem_settings[i].reg_data );
-						
-				e_ctrl->i2c_client.addr_type = 1;
-				if(1 == eeprom_map->mem_settings[i].reg_data) 
-				{
-					e_ctrl->i2c_client.i2c_func_tbl->i2c_write(	&(e_ctrl->i2c_client), 0xd4, 0x80 | ((eeprom_map->mem_settings[i].reg_addr >> 8) & 0xff),	eeprom_map->mem_settings[i].data_type);
-					e_ctrl->i2c_client.i2c_func_tbl->i2c_write(	&(e_ctrl->i2c_client), 0xd5, eeprom_map->mem_settings[i].reg_addr & 0xff, eeprom_map->mem_settings[i].data_type); 
-					e_ctrl->i2c_client.i2c_func_tbl->i2c_write(	&(e_ctrl->i2c_client), 0xf3, 0x20,	eeprom_map->mem_settings[i].data_type);
-					msleep(eeprom_map->mem_settings[i].delay);
-					rc = e_ctrl->i2c_client.i2c_func_tbl->i2c_read(	&(e_ctrl->i2c_client), 0xd7, &gc_read,	eeprom_map->mem_settings[i].data_type);
-					*memptr = (uint8_t)gc_read;
-					memptr++;
-				}
-				else 
-				{
-					e_ctrl->i2c_client.i2c_func_tbl->i2c_write(	&(e_ctrl->i2c_client), 0xd4,0x80 | ((eeprom_map->mem_settings[i].reg_addr >> 8) & 0xff),  eeprom_map->mem_settings[i].data_type);
-					e_ctrl->i2c_client.i2c_func_tbl->i2c_write( &(e_ctrl->i2c_client), 0xd5,	eeprom_map->mem_settings[i].reg_addr & 0xff,	eeprom_map->mem_settings[i].data_type);
-					e_ctrl->i2c_client.i2c_func_tbl->i2c_write(	&(e_ctrl->i2c_client), 0xf3, 0x20,	eeprom_map->mem_settings[i].data_type);
-					e_ctrl->i2c_client.i2c_func_tbl->i2c_write(	&(e_ctrl->i2c_client), 0xf3, 0x88,	eeprom_map->mem_settings[i].data_type);
-					msleep(eeprom_map->mem_settings[i].delay);
-
-					for(gc = 0; gc < eeprom_map->mem_settings[i].reg_data; gc++) 
-					{
-						msleep(eeprom_map->mem_settings[i].delay);
-						rc = e_ctrl->i2c_client.i2c_func_tbl->i2c_read(	&(e_ctrl->i2c_client), 0xd7, &gc_read,	eeprom_map->mem_settings[i].data_type);
-						if (rc < 0) {
-							pr_err("%s: read failed\n",
-								__func__);
-							goto clean_up;
-						}
-						*memptr = (uint8_t)gc_read;
-						memptr++;
-					}
-				}
-			}
-			break;
-	
-#endif
-#if 0	
-			case MSM_CAM_READ_S5K4H7YX: 
-			{		
-				pr_err("%s: gxy437 s5k4h7 reg_data = %d\n",__func__, eeprom_map->mem_settings[i].reg_data );
-				// slave: 0xA0, REG:0x8000, Data:0x4E,   i2c type: 0x1608 
-				
-				
-				// writeIIC (0xb0, 0xc00, 0x04, 0x1608);
-
-					writeIIC(
-					0x80,//I2C地址
-					0x0000,//寄存器，实际随意
-					0x0);//内容，实际随意
-
-					
-					writeIIC(
-					0xA0,//当前I2C地址
-					0x8000,//寄存器，
-					0x10);//内容，
-
-				msleep(100);
-			}
-			break;
-#endif			
-
 			default:
 				pr_err("%s: %d Invalid i2c operation LC:%d\n",
 					__func__, __LINE__, i);
@@ -693,6 +621,76 @@ free_mem:
 	return rc;
 }
 
+
+static int msm_eeprom_write_data(struct msm_eeprom_ctrl_t *e_ctrl,
+                      void *arg)
+{
+   int rc;
+   char *buffer;
+   struct msm_eeprom_cfg_data *cdata = (struct msm_eeprom_cfg_data *)arg;
+
+   buffer = kmalloc(cdata->cfg.write_data2.num_bytes, GFP_KERNEL);
+   if(buffer == NULL) {
+       CDBG("%s: Out of memory. req %u\n", __func__, cdata->cfg.write_data2.num_bytes);
+       return -ENOMEM;
+   }
+
+   rc = copy_from_user(buffer, (uint8_t __user *)cdata->cfg.write_data.dbuffer,
+       cdata->cfg.write_data2.num_bytes);
+
+   if (e_ctrl->i2c_client.cci_client) {
+       e_ctrl->i2c_client.cci_client->sid = ((uint16_t)cdata->cfg.write_data2.slave_addr) >> 1;
+   } else if (e_ctrl->i2c_client.client) {
+       e_ctrl->i2c_client.client->addr = ((uint16_t)cdata->cfg.write_data2.slave_addr) >> 1;
+   }
+
+   e_ctrl->i2c_client.addr_type = MSM_CAMERA_I2C_WORD_ADDR;
+   rc = e_ctrl->i2c_client.i2c_func_tbl->i2c_write_seq(
+       &(e_ctrl->i2c_client), (uint16_t)cdata->cfg.write_data2.reg_addr,
+       buffer, cdata->cfg.write_data2.num_bytes);
+   if (rc < 0) {
+       pr_err("%s: write failed\n", __func__);
+       return rc;
+   }
+   
+   return rc;
+}
+
+static int eeprom_config_read_data(struct msm_eeprom_ctrl_t *e_ctrl,
+   void *arg)
+{
+   int rc;
+   struct msm_eeprom_cfg_data *cdata = (struct msm_eeprom_cfg_data *)arg;
+   char *buffer;
+
+    buffer = kmalloc(cdata->cfg.read_data2.num_bytes, GFP_KERNEL);
+   if(buffer == NULL) {
+       pr_err("%s: Out of memory. req %u\n", __func__, cdata->cfg.read_data2.num_bytes);
+       return -ENOMEM;
+   }
+
+   if (e_ctrl->i2c_client.cci_client) {
+       e_ctrl->i2c_client.cci_client->sid = ((uint16_t)cdata->cfg.read_data2.slave_addr) >> 1;
+   } else if (e_ctrl->i2c_client.client) {
+       e_ctrl->i2c_client.client->addr = ((uint16_t)cdata->cfg.read_data2.slave_addr) >> 1;
+   }
+   
+   e_ctrl->i2c_client.addr_type = MSM_CAMERA_I2C_WORD_ADDR;
+   rc = e_ctrl->i2c_client.i2c_func_tbl->i2c_read_seq(
+       &(e_ctrl->i2c_client), (uint16_t)cdata->cfg.read_data2.reg_addr,
+       buffer, cdata->cfg.read_data2.num_bytes);
+   if (rc < 0) {
+       pr_err("%s: read failed\n", __func__);
+       return rc;
+   }
+
+   rc = copy_to_user((uint8_t __user *)cdata->cfg.read_data2.dbuffer, 
+       buffer,
+       cdata->cfg.read_data2.num_bytes);
+
+   return rc;
+}
+
 static int msm_eeprom_get_cmm_data(struct msm_eeprom_ctrl_t *e_ctrl,
 				       struct msm_eeprom_cfg_data *cdata)
 {
@@ -733,7 +731,7 @@ static int msm_eeprom_config(struct msm_eeprom_ctrl_t *e_ctrl,
 		(struct msm_eeprom_cfg_data *)argp;
 	int rc = 0;
 	size_t length = 0;
-
+    printk(KERN_ALERT "msm_eeprom_config::cfgtype=%d\n", cdata->cfgtype);
 	CDBG("%s E\n", __func__);
 	switch (cdata->cfgtype) {
 	case CFG_EEPROM_GET_INFO:
@@ -763,8 +761,16 @@ static int msm_eeprom_config(struct msm_eeprom_ctrl_t *e_ctrl,
 	case CFG_EEPROM_READ_CAL_DATA:
 		CDBG("%s E CFG_EEPROM_READ_CAL_DATA\n", __func__);
 		rc = eeprom_config_read_cal_data(e_ctrl, cdata);
-		break;
-	case CFG_EEPROM_GET_MM_INFO:
+        break;
+    case CFG_EEPROM_READ_DATA:
+        CDBG("%s E CFG_EEPROM_READ_DATA\n", __func__);
+        rc = eeprom_config_read_data(e_ctrl, argp);
+        break;      
+    case CFG_EEPROM_WRITE_DATA:
+        CDBG("%s E CFG_EEPROM_WRITE_DATA32\n", __func__);
+        rc = msm_eeprom_write_data(e_ctrl, argp);
+        break;  
+    case CFG_EEPROM_GET_MM_INFO:
 		CDBG("%s E CFG_EEPROM_GET_MM_INFO\n", __func__);
 		rc = msm_eeprom_get_cmm_data(e_ctrl, cdata);
 		break;
@@ -827,7 +833,7 @@ static long msm_eeprom_subdev_ioctl(struct v4l2_subdev *sd,
 	default:
 		return -ENOIOCTLCMD;
 	}
-
+    printk(KERN_ALERT "msm_eeprom_subdev_ioctl enter\n");
 	CDBG("%s X\n", __func__);
 }
 
@@ -1545,6 +1551,76 @@ static void msm_eeprom_copy_power_settings_compat(
 	}
 }
 
+
+static int msm_eeprom_write_data32(struct msm_eeprom_ctrl_t *e_ctrl,
+                      void *arg)
+{
+   int rc;
+   char *buffer;
+   struct msm_eeprom_cfg_data32 *cdata = (struct msm_eeprom_cfg_data32 *)arg;
+
+   
+   buffer = kmalloc(cdata->cfg.write_data2.num_bytes, GFP_KERNEL);
+   if(buffer == NULL) {
+       pr_err("%s: Out of memory. req %u\n", __func__, cdata->cfg.write_data2.num_bytes);
+       return -ENOMEM;
+   }
+
+   rc = copy_from_user(buffer, (uint8_t __user *)compat_ptr(cdata->cfg.write_data.dbuffer),
+       cdata->cfg.write_data2.num_bytes);
+
+   if (e_ctrl->i2c_client.cci_client) {
+       e_ctrl->i2c_client.cci_client->sid = ((uint16_t)cdata->cfg.write_data2.slave_addr) >> 1;
+   } else if (e_ctrl->i2c_client.client) {
+       e_ctrl->i2c_client.client->addr = ((uint16_t)cdata->cfg.write_data2.slave_addr) >> 1;
+   }
+
+   e_ctrl->i2c_client.addr_type = MSM_CAMERA_I2C_WORD_ADDR;
+   rc = e_ctrl->i2c_client.i2c_func_tbl->i2c_write_seq(
+       &(e_ctrl->i2c_client), (uint16_t)cdata->cfg.write_data2.reg_addr,
+       buffer, cdata->cfg.write_data2.num_bytes);
+   if (rc < 0) {
+       pr_err("%s: write failed\n", __func__);
+       return rc;
+   }
+   
+   return rc;
+}
+
+static int eeprom_config_read_data32(struct msm_eeprom_ctrl_t *e_ctrl,
+   void *arg)
+{
+   int rc;
+   struct msm_eeprom_cfg_data32 *cdata = (struct msm_eeprom_cfg_data32 *)arg;
+   char *buffer;
+
+    buffer = kmalloc(cdata->cfg.read_data2.num_bytes, GFP_KERNEL);
+   if(buffer == NULL) {
+       pr_err("%s: Out of memory. req %u\n", __func__, cdata->cfg.read_data2.num_bytes);
+       return -ENOMEM;
+   }
+
+   if (e_ctrl->i2c_client.cci_client) {
+       e_ctrl->i2c_client.cci_client->sid = ((uint16_t)cdata->cfg.read_data2.slave_addr) >> 1;
+   } else if (e_ctrl->i2c_client.client) {
+       e_ctrl->i2c_client.client->addr = ((uint16_t)cdata->cfg.read_data2.slave_addr) >> 1;
+   }
+   
+   e_ctrl->i2c_client.addr_type = MSM_CAMERA_I2C_WORD_ADDR;
+   rc = e_ctrl->i2c_client.i2c_func_tbl->i2c_read_seq(
+       &(e_ctrl->i2c_client), (uint16_t)cdata->cfg.read_data2.reg_addr,
+       buffer, cdata->cfg.read_data2.num_bytes);
+   if (rc < 0) {
+       pr_err("%s: read failed\n", __func__);
+       return rc;
+   }
+
+   rc = copy_to_user((uint8_t __user *)compat_ptr(cdata->cfg.read_data2.dbuffer), 
+       buffer,
+       cdata->cfg.read_data2.num_bytes);
+
+   return rc;
+}
 static int eeprom_config_read_cal_data32(struct msm_eeprom_ctrl_t *e_ctrl,
 	void *arg)
 {
@@ -1705,10 +1781,10 @@ static int msm_eeprom_config32(struct msm_eeprom_ctrl_t *e_ctrl,
 	struct msm_eeprom_cfg_data32 *cdata =
 		(struct msm_eeprom_cfg_data32 *)argp;
 	int rc = 0;
-	size_t length = 0;
-
-	CDBG("%s E\n", __func__);
-	switch (cdata->cfgtype) {
+    size_t length = 0;
+    printk(KERN_ALERT "msm_eeprom_config32::cfgtype=%d\n", cdata->cfgtype);
+    CDBG("%s E\n", __func__);
+    switch (cdata->cfgtype) {
 	case CFG_EEPROM_GET_INFO:
 		if (e_ctrl->userspace_probe == 1) {
 			pr_err("%s:%d Eeprom name should be module driver",
@@ -1737,6 +1813,14 @@ static int msm_eeprom_config32(struct msm_eeprom_ctrl_t *e_ctrl,
 		CDBG("%s E CFG_EEPROM_READ_CAL_DATA\n", __func__);
 		rc = eeprom_config_read_cal_data32(e_ctrl, argp);
 		break;
+   case CFG_EEPROM_READ_DATA:
+       CDBG("%s E CFG_EEPROM_READ_DATA\n", __func__);
+       rc = eeprom_config_read_data32(e_ctrl, argp);
+       break;      
+   case CFG_EEPROM_WRITE_DATA:
+       CDBG("%s E CFG_EEPROM_WRITE_DATA32\n", __func__);
+       rc = msm_eeprom_write_data32(e_ctrl, argp);
+       break;  
 	case CFG_EEPROM_INIT:
 		if (e_ctrl->userspace_probe == 0) {
 			pr_err("%s:%d Eeprom already probed at kernel boot",
@@ -1777,9 +1861,9 @@ static long msm_eeprom_subdev_ioctl32(struct v4l2_subdev *sd,
 		return msm_eeprom_config32(e_ctrl, argp);
 	default:
 		return -ENOIOCTLCMD;
-	}
-
-	CDBG("%s X\n", __func__);
+    }
+    printk(KERN_ALERT "msm_eeprom_subdev_ioctl enter\n");
+    CDBG("%s X\n", __func__);
 }
 
 static long msm_eeprom_subdev_do_ioctl32(
@@ -1811,7 +1895,7 @@ static int msm_eeprom_platform_probe(struct platform_device *pdev)
 	struct device_node *of_node = pdev->dev.of_node;
 	struct msm_camera_power_ctrl_t *power_info = NULL;
 
-	pr_err("gxy 1770 eeprom %s E\n", __func__);
+	CDBG("%s E\n", __func__);
 
 	e_ctrl = kzalloc(sizeof(*e_ctrl), GFP_KERNEL);
 	if (!e_ctrl)

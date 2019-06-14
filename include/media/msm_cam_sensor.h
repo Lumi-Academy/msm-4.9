@@ -117,6 +117,19 @@ struct eeprom_write_t32 {
 	compat_uptr_t dbuffer;
 	uint32_t num_bytes;
 };
+struct eeprom_read2_t32 {
+   compat_uptr_t dbuffer;
+   uint32_t num_bytes;
+   uint16_t slave_addr;
+   uint16_t reg_addr;
+};
+
+struct eeprom_write2_t32 {
+   compat_uptr_t dbuffer;
+   uint32_t num_bytes;
+   uint16_t slave_addr;
+   uint16_t reg_addr;
+};
 
 struct msm_eeprom_info_t32 {
 	compat_uptr_t power_setting_array;
@@ -133,7 +146,9 @@ struct msm_eeprom_cfg_data32 {
 		struct eeprom_read_t32 read_data;
 		struct eeprom_write_t32 write_data;
 		struct msm_eeprom_info_t32 eeprom_info;
-	} cfg;
+        struct eeprom_read2_t32 read_data2;
+        struct eeprom_write2_t32 write_data2;
+    } cfg;
 };
 
 struct msm_camera_i2c_seq_reg_setting32 {

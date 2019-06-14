@@ -264,6 +264,7 @@ enum eeprom_cfg_type_t {
 	CFG_EEPROM_WRITE_DATA,
 	CFG_EEPROM_GET_MM_INFO,
 	CFG_EEPROM_INIT,
+    CFG_EEPROM_READ_DATA,
 };
 
 struct eeprom_get_t {
@@ -278,6 +279,20 @@ struct eeprom_read_t {
 struct eeprom_write_t {
 	uint8_t *dbuffer;
 	uint32_t num_bytes;
+};
+
+struct eeprom_read2_t {
+   uint8_t *dbuffer;
+   uint32_t num_bytes;
+   uint16_t slave_addr;
+   uint16_t reg_addr;
+};
+
+struct eeprom_write2_t {
+   uint8_t *dbuffer;
+   uint32_t num_bytes;
+   uint16_t slave_addr;
+   uint16_t reg_addr;
 };
 
 struct eeprom_get_cmm_t {
@@ -320,8 +335,10 @@ struct msm_eeprom_cfg_data {
 		struct eeprom_read_t read_data;
 		struct eeprom_write_t write_data;
 		struct eeprom_get_cmm_t get_cmm_data;
-		struct msm_eeprom_info_t eeprom_info;
-	} cfg;
+        struct msm_eeprom_info_t eeprom_info;
+        struct eeprom_read2_t read_data2;
+        struct eeprom_write2_t write_data2;
+    } cfg;
 };
 
 enum msm_sensor_cfg_type_t {
