@@ -19,8 +19,7 @@
 #define FLASH_NAME "qcom,gpio-flash"
 
 #undef CDBG
-//#define CDBG(fmt, args...) pr_debug(fmt, ##args)
-#define CDBG(fmt, args...) pr_info(fmt, ##args)
+#define CDBG(fmt, args...) pr_debug(fmt, ##args)
 
 static const struct of_device_id msm_gpio_flash_dt_match[] = {
 	{.compatible = "qcom,qm215-gpio-flash", .data = NULL},
