@@ -242,7 +242,7 @@ enum charge_fault{
 enum charge_status{
 	CHG_READY= 0,
 	CHG_CHGING,
-	CHG_DONE,
+	CHG_DONE_OK,
 	CHG_FAULT,
 };
 
