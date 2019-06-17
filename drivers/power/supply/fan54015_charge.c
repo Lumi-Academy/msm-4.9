@@ -174,7 +174,7 @@ int sprdchg_fan54015_get_charge_status(void)
 		case CHG_CHGING:
 			SPRDCHG_54015_DEBUG("fan54015 is charging\n");
 			return POWER_SUPPLY_STATUS_CHARGING;
-		case CHG_DONE:
+		case CHG_DONE_OK:
 			SPRDCHG_54015_DEBUG("fan54015 charge full\n");
 			return POWER_SUPPLY_STATUS_FULL;
 		default:
