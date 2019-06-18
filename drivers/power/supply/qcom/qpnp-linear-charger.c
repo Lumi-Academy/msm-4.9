@@ -1183,7 +1183,7 @@ static int is_vinmin_set(struct qpnp_lbc_chip *chip)
 	return !!(reg & VINMIN_LOOP_BIT);
 
 }
-
+/*
 static int is_battery_charging(struct qpnp_lbc_chip *chip)
 {
 	u8 reg;
@@ -1198,7 +1198,7 @@ static int is_battery_charging(struct qpnp_lbc_chip *chip)
 
 	return !!(reg & CHG_ON_BIT);
 }
-
+*/
 static int qpnp_lbc_vbatdet_override(struct qpnp_lbc_chip *chip, int ovr_val)
 {
 	int rc;
@@ -1933,10 +1933,11 @@ static int qpnp_lbc_usb_get_property(struct power_supply *psy,
 		val->intval = chip->usb_present;
 		break;
 	case POWER_SUPPLY_PROP_ONLINE:
-		if (is_battery_charging(chip))
+		if (chip->usb_present &&
+			(chip->usb_supply_type !=  POWER_SUPPLY_TYPE_UNKNOWN) && (chip->usb_supply_type != POWER_SUPPLY_TYPE_BATTERY))
 			val->intval = 1;
-		else
-			val->intval = 0;
+           	else
+              		val->intval = 0;
 		break;
 	case POWER_SUPPLY_PROP_TYPE:
 		val->intval = POWER_SUPPLY_TYPE_USB;
