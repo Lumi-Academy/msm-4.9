@@ -223,7 +223,11 @@ BYTE fan54015_get_chg_current(void)
 	return fan54015_get_value(FAN5405_REG_IBAT, FAN5405_IOCHARGE, FAN5405_IOCHARGE_SHIFT);
 }
 EXPORT_SYMBOL_GPL(fan54015_get_chg_current);
-
+bool fan54015_get_opa_mode(void)
+{
+	return fan54015_get_value(FAN5405_REG_CONTROL1, FAN5405_OPA_MODE, FAN5405_OPA_MODE_SHIFT)?1:0;
+}
+EXPORT_SYMBOL_GPL(fan54015_get_opa_mode);
 #ifdef  FAN_54015_DEBUG_FS
 
 static ssize_t set_regs_store(struct device *dev,
