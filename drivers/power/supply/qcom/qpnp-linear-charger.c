@@ -2666,8 +2666,13 @@ static irqreturn_t qpnp_lbc_usbin_valid_irq_handler(int irq, void *_chip)
 	struct qpnp_lbc_chip *chip = _chip;
 	int usb_present;
 	unsigned long flags;
+	bool host_mode;
 
 	usb_present = qpnp_lbc_is_usb_chg_plugged_in(chip);
+	host_mode = fan54015_get_opa_mode();
+	if(host_mode)
+		return IRQ_HANDLED;
+
 	pr_err("zm++ usbin-valid triggered: %d\n", usb_present);
 	#if (defined UNISCOPE_DRIVER_L560S) || (defined UNISCOPE_DRIVER_L580)//add L580
 		if(usb_present)

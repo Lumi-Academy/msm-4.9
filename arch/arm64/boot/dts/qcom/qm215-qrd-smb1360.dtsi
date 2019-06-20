@@ -37,18 +37,6 @@
 		};
 };
 
-&pm8916_gpios {
-	usb_id {
-		usb_id_default: usb_id_default {
-			pins = "gpio4";
-			function = "normal";
-			input-enable;
-			bias-pull-up;
-			power-source = <0>;
-		};
-	};
-};
-
 &i2c_2 {
 	status ="ok";
 	smb1360_otg_supply: smb1360-chg-fg@14 {

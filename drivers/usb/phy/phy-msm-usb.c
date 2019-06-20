@@ -52,6 +52,8 @@
 
 #include <linux/msm-bus.h>
 
+#include "../../power/supply/fan54015.h"
+
 /**
  * Requested USB votes for BUS bandwidth
  *
@@ -2018,6 +2020,10 @@ static void msm_otg_perf_vote_work(struct work_struct *w)
 	pr_debug("%s: in_perf_mode:%u, interrupts in last sample:%u\n",
 		 __func__, in_perf_mode, curr_sample_int_count);
 
+#if (defined UNISCOPE_DRIVER_L560S) || (defined UNISCOPE_DRIVER_L580)
+	if(!motg->id_state)
+		fan54015_reset_timer();
+#endif
 	schedule_delayed_work(&motg->perf_vote_work,
 			msecs_to_jiffies(1000 * PM_QOS_SAMPLE_SEC));
 }
@@ -2099,17 +2105,14 @@ static void msm_otg_start_host(struct usb_otg *otg, int on)
 
 static void msm_hsusb_vbus_power(struct msm_otg *motg, bool on)
 {
+#if !(defined UNISCOPE_DRIVER_L560S) && !(defined UNISCOPE_DRIVER_L580)
 	int ret;
+#endif
 	static bool vbus_is_on;
 
 	msm_otg_dbg_log_event(&motg->phy, "VBUS POWER", on, vbus_is_on);
 	if (vbus_is_on == on)
 		return;
-
-	if (!vbus_otg) {
-		pr_err("vbus_otg is NULL.");
-		return;
-	}
 
 	/*
 	 * if entering host mode tell the charger to not draw any current
@@ -2117,6 +2120,12 @@ static void msm_hsusb_vbus_power(struct msm_otg *motg, bool on)
 	 * if exiting host mode disable the boost before enabling to draw
 	 * current from the source.
 	 */
+#if !(defined UNISCOPE_DRIVER_L560S) && !(defined UNISCOPE_DRIVER_L580)
+	if (!vbus_otg) {
+		pr_err("vbus_otg is NULL.");
+		return;
+	}
+
 	if (on) {
 		ret = regulator_enable(vbus_otg);
 		if (ret) {
@@ -2132,6 +2141,15 @@ static void msm_hsusb_vbus_power(struct msm_otg *motg, bool on)
 		}
 		vbus_is_on = false;
 	}
+#else
+	if (on) {
+		fan54015_otg_enable(1);
+		vbus_is_on = true;
+	} else {
+		fan54015_otg_enable(0);
+		vbus_is_on = false;
+	}
+#endif
 }
 
 static int msm_otg_set_host(struct usb_otg *otg, struct usb_bus *host)

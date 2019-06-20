@@ -300,6 +300,7 @@ extern BYTE fan54015_get_monitor_val(void);
 extern void fan54015_enable_chg(void);
 extern void fan54015_set_chg_current(BYTE reg_val);
 extern BYTE fan54015_get_chg_current(void);
+extern bool fan54015_get_opa_mode(void);
 extern int fan54015_register_notifier(struct notifier_block *nb);
 extern int fan54015_unregister_notifier(struct notifier_block *nb);
 #endif
