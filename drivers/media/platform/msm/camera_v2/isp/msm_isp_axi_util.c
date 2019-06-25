@@ -1044,7 +1044,7 @@ void msm_isp_notify(struct vfe_device *vfe_dev, uint32_t event_type,
 			vfe_dev->isp_raw2_debug++;
 		}
 
-		ISP_DBG("%s: vfe %d frame_src %d\n", __func__,
+		pr_err("%s: vfe %d frame_src %d\n", __func__,
 			vfe_dev->pdev->id, frame_src);
 
 		/*
