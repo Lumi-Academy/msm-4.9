@@ -16,6 +16,8 @@
 #include <linux/delay.h>
 #include <linux/mdss_io_util.h>
 
+extern int cts_gesture_status;
+
 #define MAX_I2C_CMDS  16
 void mdss_reg_w(struct mdss_io_data *io, u32 offset, u32 value, u32 debug)
 {
@@ -297,19 +299,21 @@ int msm_mdss_enable_vreg(struct mdss_vreg *in_vreg, int num_vreg, int enable)
 			}
 		}
 	} else {
-		for (i = num_vreg-1; i >= 0; i--) {
-			if (in_vreg[i].pre_off_sleep)
-				usleep_range((in_vreg[i].pre_off_sleep * 1000),
-					(in_vreg[i].pre_off_sleep * 1000) + 10);
-			regulator_set_load(in_vreg[i].vreg,
-				in_vreg[i].load[DSS_REG_MODE_DISABLE]);
+		if (cts_gesture_status == 0) {
+			for (i = num_vreg-1; i >= 0; i--) {			
+				if (in_vreg[i].pre_off_sleep)
+					usleep_range((in_vreg[i].pre_off_sleep * 1000),
+						(in_vreg[i].pre_off_sleep * 1000) + 10);
+				regulator_set_load(in_vreg[i].vreg,
+					in_vreg[i].load[DSS_REG_MODE_DISABLE]);
 
-			if (regulator_is_enabled(in_vreg[i].vreg))
-				regulator_disable(in_vreg[i].vreg);
+				if (regulator_is_enabled(in_vreg[i].vreg))
+					regulator_disable(in_vreg[i].vreg);
 
-			if (in_vreg[i].post_off_sleep)
-				usleep_range((in_vreg[i].post_off_sleep * 1000),
-				(in_vreg[i].post_off_sleep * 1000) + 10);
+				if (in_vreg[i].post_off_sleep)
+					usleep_range((in_vreg[i].post_off_sleep * 1000),
+					(in_vreg[i].post_off_sleep * 1000) + 10);
+			}
 		}
 	}
 	return rc;

@@ -3,6 +3,8 @@
 
 #include "cts_config.h"
 
+extern int cts_gesture_status;
+
 /** I2C addresses(7bits), transfer size and bitrate */
 #define CTS_NORMAL_MODE_I2CADDR             (0x48)
 #define CTS_PROGRAM_MODE_I2CADDR            (0x30)
@@ -216,7 +218,7 @@ struct chipone_ts_data {
 #ifdef CONFIG_CTS_LEGACY_TOOL
     struct proc_dir_entry *procfs_entry;
 #endif /* CONFIG_CTS_LEGACY_TOOL */
-
+	struct device *sysfs_dev;
 };
 
 static inline u32 get_unaligned_le24(const void *p)

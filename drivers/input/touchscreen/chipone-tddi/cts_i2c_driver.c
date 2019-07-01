@@ -67,10 +67,12 @@ static int cts_resume(struct chipone_ts_data *cts_data)
             cts_warn("Disable IRQ wake failed %d", ret);
             //return ret;
         }
+/*
         if ((ret = cts_plat_disable_irq(cts_data->pdata)) < 0) {
             cts_err("Disable IRQ failed %d", ret);
             //return ret;
         }
+        */
     }
 #endif /* CONFIG_CTS_GESTURE */
 
@@ -94,7 +96,7 @@ static int fb_notifier_callback(struct notifier_block *nb,
 				      unsigned long action, void *data)
 {
     volatile int blank;
-    const struct cts_platform_data *pdata = 
+    const struct cts_platform_data *pdata =
         container_of(nb, struct cts_platform_data, fb_notifier);
     struct chipone_ts_data *cts_data =
         container_of(pdata->cts_dev, struct chipone_ts_data, cts_dev);
@@ -105,16 +107,16 @@ static int fb_notifier_callback(struct notifier_block *nb,
     if (evdata && evdata->data) {
         if (action == FB_EVENT_BLANK) {
             blank = *(int *)evdata->data;
-            if (blank == FB_BLANK_UNBLANK) {	
+            if (blank == FB_BLANK_UNBLANK) {
                 cts_resume(cts_data);
                 return NOTIFY_OK;
-            }    
+            }
         } else if (action == FB_EARLY_EVENT_BLANK) {
             blank = *(int *)evdata->data;
-            if (blank == FB_BLANK_POWERDOWN) {	
+            if (blank == FB_BLANK_POWERDOWN) {
                 cts_suspend(cts_data);
                 return NOTIFY_OK;
-            }    
+            }
         }
     }
 
@@ -128,14 +130,14 @@ static int cts_init_pm_fb_notifier(struct chipone_ts_data * cts_data)
     cts_data->pdata->fb_notifier.notifier_call = fb_notifier_callback;
 
     return fb_register_client(&cts_data->pdata->fb_notifier);
-}	
+}
 
 static int cts_deinit_pm_fb_notifier(struct chipone_ts_data * cts_data)
 {
     cts_info("Deinit FB notifier");
 
-    return fb_unregister_client(&cts_data->pdata->fb_notifier); 
-}	
+    return fb_unregister_client(&cts_data->pdata->fb_notifier);
+}
 #endif /* CONFIG_CTS_PM_FB_NOTIFIER */
 
 static int cts_i2c_driver_probe(struct i2c_client *client,
@@ -228,7 +230,7 @@ static int cts_i2c_driver_probe(struct i2c_client *client,
         cts_err("Init vkey device failed %d", ret);
         goto err_deinit_touch_device;
     }
-    
+
     ret = cts_plat_init_gesture(cts_data->pdata);
     if (ret < 0) {
         cts_err("Init gesture failed %d", ret);
@@ -247,12 +249,16 @@ static int cts_i2c_driver_probe(struct i2c_client *client,
         cts_warn("Add sysfs entry for device failed %d", ret);
     }
 
+	ret = vsm_gesture_sysfs_init(cts_data);
+	if (ret < 0)
+		cts_err("%s: Failed to init TP gesture sysfs %d", __func__, ret);
+
 #ifdef CONFIG_CTS_PM_FB_NOTIFIER
     ret = cts_init_pm_fb_notifier(cts_data);
     if (ret) {
         cts_err("Init FB notifier failed %d", ret);
         goto err_deinit_sysfs;
-    }   
+    }
 #endif /* CONFIG_CTS_PM_FB_NOTIFIER */
 
     ret = cts_plat_request_irq(cts_data->pdata);
@@ -268,7 +274,7 @@ static int cts_i2c_driver_probe(struct i2c_client *client,
     }
 
     return 0;
-    
+
 err_free_irq:
     cts_plat_free_irq(cts_data->pdata);
 
@@ -277,6 +283,7 @@ err_register_fb:
     cts_deinit_pm_fb_notifier(cts_data);
 err_deinit_sysfs:
 #endif /* CONFIG_CTS_PM_FB_NOTIFIER */
+	vsm_gesture_sysfs_remove(cts_data);
     cts_sysfs_remove_device(&client->dev);
 #ifdef CONFIG_CTS_LEGACY_TOOL
     cts_tool_deinit(cts_data);
@@ -307,7 +314,7 @@ err_destroy_esd_workqueue:
 //err_destroy_workqueue:
  //   destroy_workqueue(cts_data->workqueue);
 err_deinit_platform_data:
-    cts_deinit_platform_data(cts_data->pdata);   
+    cts_deinit_platform_data(cts_data->pdata);
 //err_free_pdata:
     kfree(cts_data->pdata);
 err_free_cts_data:
@@ -334,12 +341,13 @@ static int cts_i2c_driver_remove(struct i2c_client *client)
 
         cts_plat_free_irq(cts_data->pdata);
 
-#ifdef CONFIG_CTS_PM_FB_NOTIFIER       
+#ifdef CONFIG_CTS_PM_FB_NOTIFIER
         cts_deinit_pm_fb_notifier(cts_data);
 #endif /* CONFIG_CTS_PM_FB_NOTIFIER */
 
         cts_tool_deinit(cts_data);
 
+		vsm_gesture_sysfs_remove(cts_data);
         cts_sysfs_remove_device(&client->dev);
 
         cts_deinit_esd_protection(cts_data);
@@ -625,4 +633,3 @@ MODULE_DESCRIPTION("Chipone TDDI touchscreen Driver for QualComm platform");
 MODULE_VERSION(CFG_CTS_DRIVER_VERSION);
 MODULE_AUTHOR("Miao Defang <dfmiao@chiponeic.com>");
 MODULE_LICENSE("GPL");
-

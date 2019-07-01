@@ -74,7 +74,7 @@
 			29 01 00 00 00 00 02 26 01
 		];
 		qcom,mdss-dsi-on-command-state = "dsi_lp_mode";
-		qcom,mdss-dsi-off-command-state = "dsi_hs_mode";
+		qcom,mdss-dsi-off-command-state = "dsi_lp_mode";
 		qcom,mdss-dsi-t-clk-post = <0x5>;
 		qcom,mdss-dsi-t-clk-pre = <0x17>;
 		qcom,mdss-dsi-h-sync-pulse = <0>;
@@ -94,7 +94,7 @@
 		qcom,mdss-dsi-lane-1-state;
 		qcom,mdss-dsi-lane-2-state;
 		qcom,mdss-dsi-lane-3-state;
-		qcom,mdss-dsi-reset-sequence = <1 5>, <0 5>, <1 120>;
+		qcom,mdss-dsi-reset-sequence = <0 10>, <1 120>;
 		qcom,mdss-dsi-lp11-init;
 		qcom,mdss-dsi-post-init-delay = <2>;
 	};

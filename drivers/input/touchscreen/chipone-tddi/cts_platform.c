@@ -10,7 +10,7 @@ size_t cts_plat_get_max_fw_log_size(struct cts_platform_data *pdata)
     return CTS_FW_LOG_BUF_LEN;
 }
 
-u8 *cts_plat_get_fw_log_buf(struct cts_platform_data *pdata, 
+u8 *cts_plat_get_fw_log_buf(struct cts_platform_data *pdata,
     size_t size)
 {
     return pdata->fw_log_buf;
@@ -22,7 +22,7 @@ size_t cts_plat_get_max_i2c_xfer_size(struct cts_platform_data *pdata)
     return CFG_CTS_MAX_I2C_XFER_SIZE;
 }
 
-u8 *cts_plat_get_i2c_xfer_buf(struct cts_platform_data *pdata, 
+u8 *cts_plat_get_i2c_xfer_buf(struct cts_platform_data *pdata,
     size_t xfer_size)
 {
     return pdata->i2c_fifo_buf;
@@ -233,7 +233,7 @@ static int cts_plat_parse_dt(struct cts_platform_data *pdata,
 static void cts_plat_touch_event_timeout(unsigned long arg)
 {
     cts_warn("Touch event timeout");
- 
+
     cts_plat_release_all_touch((struct cts_platform_data *)arg);
 }
 #endif
@@ -331,7 +331,7 @@ int cts_init_platform_data(struct cts_platform_data *pdata,
 #endif /* CONFIG_CTS_GESTURE */
 
 #ifdef CFG_CTS_FORCE_UP
-    setup_timer(&pdata->touch_event_timeout_timer, 
+    setup_timer(&pdata->touch_event_timeout_timer,
         cts_plat_touch_event_timeout, (unsigned long)pdata);
 #endif
     return 0;
@@ -436,7 +436,7 @@ int cts_plat_enable_irq(struct cts_platform_data *pdata)
 
     if (pdata->irq > 0) {
         spin_lock_irqsave(&pdata->irq_lock, irqflags);
-        if (pdata->irq_is_disable)/* && !cts_is_device_suspended(pdata->chip)) */{  
+        if (pdata->irq_is_disable)/* && !cts_is_device_suspended(pdata->chip)) */{
             cts_dbg("Real enable IRQ");
             enable_irq(pdata->irq);
             pdata->irq_is_disable = false;
@@ -492,7 +492,7 @@ int cts_plat_set_reset(struct cts_platform_data *pdata, int val)
     else {
         gpio_set_value(pdata->rst_gpio, 0);
     }
-    return 0;            
+    return 0;
 }
 #endif /* CFG_CTS_HAS_RESET_PIN */
 
@@ -617,16 +617,16 @@ int cts_plat_process_touch_msg(struct cts_platform_data *pdata,
     if (contact == 0) {
 	    input_report_key(input_dev, BTN_TOUCH, 0);
 	    input_mt_sync(input_dev);
-	}    
+	}
 #endif
     input_sync(input_dev);
-#ifdef CFG_CTS_FORCE_UP    
+#ifdef CFG_CTS_FORCE_UP
 	if (contact) {
         mod_timer(&pdata->touch_event_timeout_timer, jiffies + msecs_to_jiffies(100));
     } else {
         del_timer(&pdata->touch_event_timeout_timer);
     }
-#endif	
+#endif
     return 0;
 }
 
@@ -808,4 +808,3 @@ int cts_plat_process_gesture_info(struct cts_platform_data *pdata,
 }
 
 #endif /* CONFIG_CTS_GESTURE */
-

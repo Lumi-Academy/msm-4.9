@@ -8,6 +8,8 @@
 #include "cts_spi_flash.h"
 #include "cts_firmware.h"
 
+struct class *vsm_class;
+
 #ifdef CONFIG_CTS_SYSFS
 
 #define SPLIT_LINE_STR \
@@ -28,8 +30,8 @@ static char cmdline_param[MAX_ARG_LENGTH + 1];
 static int  argc;
 static char *argv[MAX_ARG_NUM];
 
-static int jitter_test_frame = 10;         
-static s16 *manualdiff_base = NULL;       
+static int jitter_test_frame = 10;
+static s16 *manualdiff_base = NULL;
 
 static int parse_arg(const char *buf, size_t count)
 {
@@ -139,9 +141,9 @@ static ssize_t read_firmware_register_show(struct device *dev,
     }
 
     cts_info("Read firmware register from 0x%04x size %u", addr, size);
-    cts_lock_device(cts_dev);    
+    cts_lock_device(cts_dev);
     ret = cts_fw_reg_readsb(cts_dev, addr, data, (size_t)size);
-    cts_unlock_device(cts_dev);    
+    cts_unlock_device(cts_dev);
     if (ret) {
         count = sprintf(buf,
             "Read firmware register from 0x%04x size %u failed %d\n",
@@ -224,8 +226,8 @@ static ssize_t read_hw_reg_show(struct device *dev,
     }
 
     cts_info("Read hw register from 0x%04x size %u", addr, size);
-    cts_lock_device(cts_dev); 
-    
+    cts_lock_device(cts_dev);
+
     for (i = 0; i < size; i++)
     {
         ret = cts_fw_reg_writel_retry(cts_dev, HW_STUB_ADDR, addr + i, 3, 10);
@@ -261,7 +263,7 @@ static ssize_t read_hw_reg_show(struct device *dev,
     }
 
 err_free_data:
-    cts_unlock_device(cts_dev);    
+    cts_unlock_device(cts_dev);
     kfree(data);
 
     return count;
@@ -308,7 +310,7 @@ static ssize_t write_hw_reg_store(struct device *dev,
         cts_err("Allocate buffer for write data failed\n");
         return -ENOMEM;
     }
-    
+
     for (i = 1; i < argc; i++) {
         ret = kstrtou8(argv[i], 0, data + i - 1);
         if (ret) {
@@ -726,7 +728,7 @@ static ssize_t flash_info_show(struct device *dev,
 
         program_mode = cts_is_device_program_mode(cts_dev);
         enabled = cts_is_device_enabled(cts_dev);
-        
+
         ret = cts_prepare_flash_operation(cts_dev);
         if (ret) {
             return sprintf(buf, "Prepare flash operation failed %d", ret);
@@ -754,7 +756,7 @@ static ssize_t flash_info_show(struct device *dev,
     }
 
     flash = cts_dev->flash;
-    return snprintf(buf, PAGE_SIZE, 
+    return snprintf(buf, PAGE_SIZE,
                         "%s:\n"
                         "  JEDEC ID   : %06X\n"
                         "  Page size  : 0x%zx\n"
@@ -844,7 +846,7 @@ static ssize_t read_flash_show(struct device *dev,
         for (i = 0; i < size && count <= PAGE_SIZE; i += PRINT_ROW_SIZE) {
             size_t linelen = min((size_t)remaining, (size_t)PRINT_ROW_SIZE);
             remaining -= PRINT_ROW_SIZE;
-        
+
             count += snprintf(buf + count, PAGE_SIZE - count - 1,
                         "%04x-%04x: ", flash_addr >> 16, flash_addr & 0xFFFF);
             /* Lower version kernel return void */
@@ -1009,7 +1011,7 @@ static ssize_t open_test_store(struct device *dev,
         struct device_attribute *attr, const char *buf, size_t count)
 {
     parse_arg(buf, count);
-    
+
     return count;
 }
 static DEVICE_ATTR(open_test, S_IWUSR | S_IRUGO, open_test_show, open_test_store);
@@ -1075,11 +1077,11 @@ static ssize_t reset_test_show(struct device *dev,
 
     ret = cts_reset_test(cts_dev);
     if (ret == 0) {
-        count = sprintf(buf, "reset pin test sucessful\n");  
-    }    
-    else { 
-        count = sprintf(buf, "reset pin test failed\n");  
-    }          
+        count = sprintf(buf, "reset pin test sucessful\n");
+    }
+    else {
+        count = sprintf(buf, "reset pin test failed\n");
+    }
 
     return count;
 }
@@ -1137,7 +1139,7 @@ static ssize_t program_mode_store(struct device *dev,
             cts_err("Enter program mode failed %d", ret);
             return ret;
         }
-    } 
+    }
     else if (*argv[0] == '0' || tolower(*argv[0]) == 'n') {
         ret = cts_enter_normal_mode(&cts_data->cts_dev);
         if (ret) {
@@ -1146,7 +1148,7 @@ static ssize_t program_mode_store(struct device *dev,
         }
     } else {
         cts_err("Invalid args");
-    }    
+    }
 
     return count;
 }
@@ -1246,7 +1248,7 @@ err_free_rawdata:
     kfree(rawdata);
 
     return (data_valid ? count : ret);
-    
+
 #undef RAWDATA_BUFFER_SIZE
 }
 static DEVICE_ATTR(rawdata, S_IRUGO, rawdata_show, NULL);
@@ -1360,7 +1362,7 @@ static ssize_t manualdiffdata_show(struct device *dev,
     struct file *file = NULL;
     int i;
     loff_t pos = 0;
-    
+
     cts_info("Show manualdiff");
 
     if (argc != 1 && argc != 2) {
@@ -1371,7 +1373,7 @@ static ssize_t manualdiffdata_show(struct device *dev,
                 "  or\n"
                 "  1. echo updatebase > manualdiff\n"
                 "  2. echo frame file > manualdiff\n"
-                "  3. cat manualdiff\n");  
+                "  3. cat manualdiff\n");
     }
 
     if (argc == 2) {
@@ -1383,10 +1385,10 @@ static ssize_t manualdiffdata_show(struct device *dev,
         if (IS_ERR(file)) {
             return sprintf(buf, "Can't open file:%s", argv[1]);
         }
-    } 
+    }
     else {
-        frame = 1;        
-    }       
+        frame = 1;
+    }
 
     rawdata = (s16 *)kmalloc(DIFFDATA_BUFFER_SIZE(cts_dev), GFP_KERNEL);
     if (rawdata == NULL) {
@@ -1409,7 +1411,7 @@ static ssize_t manualdiffdata_show(struct device *dev,
     }
     msleep(50);
 
-    cts_info("frame %d, file:%s", frame, argv[1]);  
+    cts_info("frame %d, file:%s", frame, argv[1]);
     for (i = 0; i < frame; i++) {
         ret = cts_get_rawdata(cts_dev, rawdata);
         if(ret) {
@@ -1420,7 +1422,7 @@ static ssize_t manualdiffdata_show(struct device *dev,
             data_valid = true;
         }
         msleep(50);
-        
+
         if (data_valid) {
             max = -32768;
             min = 32767;
@@ -1428,10 +1430,10 @@ static ssize_t manualdiffdata_show(struct device *dev,
             max_r = max_c = min_r = min_c = 0;
             for (r = 0; r < cts_dev->fwdata.rows; r++) {
                 for (c = 0; c < cts_dev->fwdata.cols; c++) {
-                    s16 val; 
-                    
+                    s16 val;
+
                     rawdata[r * cts_dev->fwdata.cols + c] -= manualdiff_base[r * cts_dev->fwdata.cols + c];
-                    val = rawdata[r * cts_dev->fwdata.cols + c];                    
+                    val = rawdata[r * cts_dev->fwdata.cols + c];
                     sum += val;
                     if (val > max) {
                         max = val;
@@ -1454,7 +1456,7 @@ static ssize_t manualdiffdata_show(struct device *dev,
                 count += sprintf(buf + count, COL_NUM_FORMAT_STR, c);
             }
             count += sprintf(buf + count, "\n" SPLIT_LINE_STR);
-    
+
             for (r = 0; r < cts_dev->fwdata.rows; r++) {
                 count += sprintf(buf + count, ROW_NUM_FORMAT_STR, r);
                 for (c = 0; c < cts_dev->fwdata.cols; c++) {
@@ -1470,14 +1472,14 @@ static ssize_t manualdiffdata_show(struct device *dev,
                     cts_err("Write data to file '%s' failed %d", argv[1], ret);
                 }
                 pos += count;
-                count = 0;       
-            }    
+                count = 0;
+            }
         }
     }
     if (argc == 2) {
-        filp_close(file, NULL);   
-    }            
-            
+        filp_close(file, NULL);
+    }
+
     ret = cts_disable_get_rawdata(cts_dev);
     if (ret) {
         cts_err("Disable read raw data failed %d", ret);
@@ -1497,7 +1499,7 @@ static ssize_t manualdiffdata_store(struct device *dev,
     struct chipone_ts_data *cts_data = dev_get_drvdata(dev);
     struct cts_device *cts_dev = &cts_data->cts_dev;
     int ret = 0;
-    
+
     parse_arg(buf, count);
 
     cts_lock_device(cts_dev);
@@ -1507,15 +1509,15 @@ static ssize_t manualdiffdata_store(struct device *dev,
             cts_err("Enable read raw data failed %d", ret);
             goto err_manual_diff_store;
         }
-    
+
         ret = cts_send_command(cts_dev, CTS_CMD_QUIT_GESTURE_MONITOR);
         if (ret) {
             cts_err("Send cmd QUIT_GESTURE_MONITOR failed %d", ret);
             goto err_manual_diff_store;
         }
         msleep(50);
-    
-        if (manualdiff_base != NULL) {    
+
+        if (manualdiff_base != NULL) {
             ret = cts_get_rawdata(cts_dev, manualdiff_base);
             if(ret) {
                 cts_err("Get raw data failed %d", ret);
@@ -1551,12 +1553,12 @@ static ssize_t jitter_store(struct device *dev,
     if (ret == 0) {
         if (cnt > 2 || cnt < 10000) {
             jitter_test_frame = cnt;
-        }        
+        }
     }
-    
-    cts_info("jitter test frame: %d", jitter_test_frame);    
+
+    cts_info("jitter test frame: %d", jitter_test_frame);
     return count;
-}    
+}
 
 static ssize_t jitter_show(struct device *dev,
         struct device_attribute *attr, char *buf)
@@ -1595,8 +1597,8 @@ static ssize_t jitter_show(struct device *dev,
 
     for (i = 0; i < DIFFDATA_BUFFER_SIZE(cts_dev)/2; i++) {
         rawdata_min[i] = 32767;
-        rawdata_max[i] = -32768;    
-    }    
+        rawdata_max[i] = -32768;
+    }
 
     ret = cts_enable_get_rawdata(cts_dev);
     if (ret) {
@@ -1627,9 +1629,9 @@ static ssize_t jitter_show(struct device *dev,
                 else if (rawdata_max[index] < rawdata[index])
                     rawdata_max[index] = rawdata[index];
             }
-        }      
+        }
         msleep(50);
-    }    
+    }
     ret = cts_disable_get_rawdata(cts_dev);
     if (ret) {
         cts_err("Disable read raw data failed %d", ret);
@@ -1642,9 +1644,9 @@ static ssize_t jitter_show(struct device *dev,
         max_r = max_c = min_r = min_c = 0;
         for (r = 0; r < cts_dev->fwdata.rows; r++) {
             for (c = 0; c < cts_dev->fwdata.cols; c++) {
-                s16 val; 
+                s16 val;
                 int index = r * cts_dev->fwdata.cols + c;
-                
+
                 val = rawdata_max[index] - rawdata_min[index];
                 rawdata[index] = val;
                 sum += val;
@@ -1680,7 +1682,7 @@ static ssize_t jitter_show(struct device *dev,
            buf[count++] = '\n';
         }
     }
-    
+
 err_free_rawdata_max:
     kfree(rawdata_max);
 err_free_rawdata_min:
@@ -1690,7 +1692,7 @@ err_free_rawdata:
 err_jitter_show_exit:
     cts_unlock_device(cts_dev);
     return (data_valid ? count : ret);
-}    
+}
 
 static DEVICE_ATTR(jitter, S_IRUSR|S_IWUSR, jitter_show, jitter_store);
 
@@ -1704,7 +1706,7 @@ static ssize_t reset_pin_show(struct device *dev,
 
     return snprintf(buf, PAGE_SIZE,
         "Reset pin: %d, status: %d\n",
-        cts_data->pdata->rst_gpio, 
+        cts_data->pdata->rst_gpio,
         gpio_get_value(cts_data->pdata->rst_gpio));
 }
 
@@ -1721,7 +1723,7 @@ static ssize_t reset_pin_store(struct device *dev,
     return count;
 }
 static DEVICE_ATTR(reset_pin, S_IRUSR | S_IWUSR, reset_pin_show, reset_pin_store);
-#endif        
+#endif
 
 static ssize_t irq_pin_show(struct device *dev,
         struct device_attribute *attr, char *buf)
@@ -1732,7 +1734,7 @@ static ssize_t irq_pin_show(struct device *dev,
 
     return snprintf(buf, PAGE_SIZE,
         "IRQ pin: %d, status: %d\n",
-        cts_data->pdata->int_gpio, 
+        cts_data->pdata->int_gpio,
         gpio_get_value(cts_data->pdata->int_gpio));
 }
 static DEVICE_ATTR(irq_pin, S_IRUGO, irq_pin_show, NULL);
@@ -1754,7 +1756,7 @@ static ssize_t irq_info_show(struct device *dev,
     return snprintf(buf, PAGE_SIZE,
         "IRQ num: %d, depth: %u, "
         "count: %u, unhandled: %u, last unhandled eslape: %lu\n",
-        cts_data->pdata->irq, desc->depth, 
+        cts_data->pdata->irq, desc->depth,
         desc->irq_count, desc->irqs_unhandled, desc->last_unhandled);
 }
 static DEVICE_ATTR(irq_info, S_IRUGO, irq_info_show, NULL);
@@ -1781,14 +1783,14 @@ static ssize_t fw_log_redirect_store(struct device *dev,
         enable = 1;
     }
     if (enable) {
-        cts_enable_fw_log_redirect(cts_dev);    
+        cts_enable_fw_log_redirect(cts_dev);
     }
     else {
-        cts_disable_fw_log_redirect(cts_dev);    
-    }    
-    
-    return count;    
-}        
+        cts_disable_fw_log_redirect(cts_dev);
+    }
+
+    return count;
+}
 static DEVICE_ATTR(fw_log_redirect, S_IRUSR|S_IWUSR, fw_log_redirect_show, fw_log_redirect_store);
 #endif
 
@@ -1799,12 +1801,12 @@ static struct attribute *cts_dev_misc_atts[] = {
     &dev_attr_diffdata.attr,
     &dev_attr_manualdiff.attr,
     &dev_attr_jitter.attr,
-#ifdef CFG_CTS_HAS_RESET_PIN    
+#ifdef CFG_CTS_HAS_RESET_PIN
     &dev_attr_reset_pin.attr,
-#endif    
+#endif
     &dev_attr_irq_pin.attr,
     &dev_attr_irq_info.attr,
-#ifdef CFG_CTS_FW_LOG_REDIRECT    
+#ifdef CFG_CTS_FW_LOG_REDIRECT
     &dev_attr_fw_log_redirect.attr,
 #endif
     NULL
@@ -1850,8 +1852,8 @@ int cts_sysfs_add_device(struct device *dev)
     manualdiff_base = (s16 *)kzalloc(DIFFDATA_BUFFER_SIZE(cts_dev), GFP_KERNEL);
     if (manualdiff_base == NULL) {
         cts_err("Malloc manualdiff_base failed");
-        return -ENOMEM;        
-    } 
+        return -ENOMEM;
+    }
     return 0;
 }
 
@@ -1863,13 +1865,80 @@ void cts_sysfs_remove_device(struct device *dev)
 
     if (manualdiff_base != NULL) {
         kfree(manualdiff_base);
-        manualdiff_base = NULL;    
+        manualdiff_base = NULL;
     }
-        
+
     // Low version kernel NOT support sysfs_remove_groups()
     for (i = 0; cts_dev_attr_groups[i]; i++) {
         sysfs_remove_group(&dev->kobj, cts_dev_attr_groups[i]);
     }
+}
+
+static ssize_t doubletab_enable_store(struct device *dev,
+		struct device_attribute *devattr, const char *buf, size_t count)
+{
+	struct chipone_ts_data *cts_data = dev_get_drvdata(dev);
+	int enable = 0;
+	int ret;
+
+	ret = kstrtoint(buf, 10, &enable);
+	if (ret != 0)
+		return ret;
+
+	if (enable)
+		cts_enable_gesture_wakeup(&cts_data->cts_dev);
+	else
+		cts_disable_gesture_wakeup(&cts_data->cts_dev);
+
+	cts_info("update wakeup events: %s:%d", __func__, enable);
+	return count;
+}
+static DEVICE_ATTR(doubletab_enable, 0220, NULL, doubletab_enable_store);
+
+static struct attribute *vsm_gesture_attrs[] = {
+	&dev_attr_doubletab_enable.attr,
+	NULL,
+};
+
+static const struct attribute_group tp_gesture_attr_group = {
+	.attrs = vsm_gesture_attrs,
+};
+
+int vsm_gesture_sysfs_init(struct chipone_ts_data *cts_data)
+{
+	int ret;
+	vsm_class = class_create(THIS_MODULE, "vsm_input");
+	if (unlikely(IS_ERR(vsm_class))) {
+		cts_err("%s: Failed to create class(sec) %ld\n", __func__, PTR_ERR(vsm_class));
+		return PTR_ERR(vsm_class);
+	}
+
+	cts_data->sysfs_dev = device_create(vsm_class, NULL, 0, cts_data, "tp");
+	if (IS_ERR(cts_data->sysfs_dev)) {
+		cts_err("%s: failed to create device for the sysfs\n", __func__);
+		return -ENODEV;
+	}
+
+	dev_set_drvdata(cts_data->sysfs_dev, cts_data);
+
+	ret = sysfs_create_group(&cts_data->sysfs_dev->kobj, &tp_gesture_attr_group);
+	if (ret < 0) {
+		cts_err("%s: failed to create sysfs group\n", __func__);
+		goto err_sysfs_group;
+	}
+
+	return 0;
+
+err_sysfs_group:
+	device_destroy(vsm_class, 0);
+	return -ENODEV;
+}
+
+void vsm_gesture_sysfs_remove(struct chipone_ts_data *cts_data)
+{
+	sysfs_remove_group(&cts_data->sysfs_dev->kobj, &tp_gesture_attr_group);
+	dev_set_drvdata(cts_data->sysfs_dev, NULL);
+	device_destroy(vsm_class, 0);
 }
 
 #undef SPLIT_LINE_STR

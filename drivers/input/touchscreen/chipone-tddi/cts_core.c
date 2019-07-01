@@ -7,6 +7,8 @@
 #include "cts_spi_flash.h"
 #include "cts_firmware.h"
 
+int cts_gesture_status = 0;
+
 static int cts_i2c_writeb(const struct cts_device *cts_dev,
         u32 addr, u8 b, int retry, int delay)
 {
@@ -1612,14 +1614,16 @@ update_firmware:
 #ifdef CONFIG_CTS_GESTURE
 void cts_enable_gesture_wakeup(struct cts_device *cts_dev)
 {
-    cts_info("Enable gesture wakeup");
-    cts_dev->rtdata.gesture_wakeup_enabled = true;
+	cts_info("Enable gesture wakeup");
+	cts_dev->rtdata.gesture_wakeup_enabled = true;
+	cts_gesture_status = 1;
 }
 
 void cts_disable_gesture_wakeup(struct cts_device *cts_dev)
 {
-    cts_info("Disable gesture wakeup");
-    cts_dev->rtdata.gesture_wakeup_enabled = false;
+	cts_info("Disable gesture wakeup");
+	cts_dev->rtdata.gesture_wakeup_enabled = false;
+	cts_gesture_status = 0;
 }
 
 bool cts_is_gesture_wakeup_enabled(const struct cts_device *cts_dev)

@@ -640,8 +640,8 @@ pmi632_pwm: qcom,pwms@b300 {
 				regulator-name = "lcdb_ldo";
 				regulator-min-microvolt = <4000000>;
 				regulator-max-microvolt = <6000000>;
-                regulator-always-on;
-                ncp-voltage-mv = <5500>;
+                		regulator-always-on;
+                		qcom,ldo-voltage-mv = <5500>;
 			};
 
 			lcdb_ncp_vreg: ncp {
@@ -649,8 +649,8 @@ pmi632_pwm: qcom,pwms@b300 {
 				regulator-name = "lcdb_ncp";
 				regulator-min-microvolt = <4000000>;
 				regulator-max-microvolt = <6000000>;
-                regulator-always-on;
-                ncp-voltage-mv = <5500>;
+                		regulator-always-on;
+                		qcom,ncp-voltage-mv = <5500>;
 			};
 
 			lcdb_bst_vreg: bst {
