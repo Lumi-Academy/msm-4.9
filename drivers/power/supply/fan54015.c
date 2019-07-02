@@ -152,22 +152,21 @@ void fan54015_set_safety_cur(BYTE reg_val )
 }
 
 EXPORT_SYMBOL_GPL(fan54015_set_safety_cur);
-void fan54015_otg_enable(int enable)
+void fan54015_otg_enable(BYTE reg_val)
 {
-	SPRD_EX_DEBUG("fan54015_OTG_Enable enable =%d\n",enable);
+	SPRD_EX_DEBUG("fan54015_OTG_Enable enable =%d\n",reg_val);
 	
-	if(enable){
-		fan54015_write_reg(FAN5405_REG_CONTROL1,0xf9);/*zhangbing@uniscope_drv 20160708 add*/
+	if(reg_val){
+
+	    fan54015_set_value(FAN5405_REG_CONTROL1, FAN5405_OPA_MODE, FAN5405_OPA_MODE_SHIFT, reg_val);
 	}else{
-		fan54015_write_reg(FAN5405_REG_CONTROL1,0xf8);/*zhangbing@uniscope_drv 20160708 add*/
+	    fan54015_set_value(FAN5405_REG_CONTROL1, FAN5405_OPA_MODE, FAN5405_OPA_MODE_SHIFT, reg_val);
 	}
 }
 EXPORT_SYMBOL_GPL(fan54015_otg_enable);
 
 void fan54015_stop_charging(void)
 {
-//	 gpio_set_value_cansleep(pdata->chg_dis_gpio,1);
-//	 printk("@@ zm++ %s pdata->chg_dis_gpio = %d \n", __func__, pdata->chg_dis_gpio);
 	 gpio_set_value(12,1);/*zhangbing@uniscope_drv 20160708 add*/
 }
 EXPORT_SYMBOL_GPL(fan54015_stop_charging);
@@ -223,11 +222,25 @@ BYTE fan54015_get_chg_current(void)
 	return fan54015_get_value(FAN5405_REG_IBAT, FAN5405_IOCHARGE, FAN5405_IOCHARGE_SHIFT);
 }
 EXPORT_SYMBOL_GPL(fan54015_get_chg_current);
+
 bool fan54015_get_opa_mode(void)
 {
-	return fan54015_get_value(FAN5405_REG_CONTROL1, FAN5405_OPA_MODE, FAN5405_OPA_MODE_SHIFT)?1:0;
+   return fan54015_get_value(FAN5405_REG_CONTROL1, FAN5405_OPA_MODE, FAN5405_OPA_MODE_SHIFT)?1:0;
 }
 EXPORT_SYMBOL_GPL(fan54015_get_opa_mode);
+
+void fan54015_set_thermal_current(int reg_val)
+{
+    printk("zhangming %s,%d\n",__func__,__LINE__);
+    if(reg_val == 0)
+	    fan54015_set_value(FAN5405_REG_CONTROL1, FAN5405_IINLIM, FAN5405_IINLIM_SHIFT, 0x01);
+    else
+    {
+        fan54015_set_value(FAN5405_REG_CONTROL1, FAN5405_IINLIM, FAN5405_IINLIM_SHIFT, 0x03);
+
+    }
+}
+
 #ifdef  FAN_54015_DEBUG_FS
 
 static ssize_t set_regs_store(struct device *dev,

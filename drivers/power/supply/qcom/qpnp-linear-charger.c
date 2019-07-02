@@ -141,10 +141,6 @@ struct qpnp_lbc_irq {
 	unsigned long	disabled;
 	bool            is_wake;
 };
-#if (defined UNISCOPE_DRIVER_L560S) || (defined UNISCOPE_DRIVER_L580)//add L580
-extern void fan54015_enable_chg(void);//zhangbing add
-extern void fan54015_stop_charging(void);//zhangbing add
-#endif
 
 enum {
 	USBIN_VALID = 0,

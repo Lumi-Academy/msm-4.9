@@ -291,7 +291,7 @@ extern void fan54015_termina_vol_set(BYTE reg_val);
 extern void fan54015_set_safety_vol(BYTE reg_val);
 extern void fan54015_set_safety_cur(BYTE reg_val);
 extern void fan54015_init(void);
-extern void fan54015_otg_enable(int enable);
+extern void fan54015_otg_enable(BYTE reg_val);
 extern void fan54015_stop_charging(void);
 extern BYTE fan54015_get_vendor_id(void);
 extern BYTE fan54015_get_chg_status(void);
@@ -300,7 +300,8 @@ extern BYTE fan54015_get_monitor_val(void);
 extern void fan54015_enable_chg(void);
 extern void fan54015_set_chg_current(BYTE reg_val);
 extern BYTE fan54015_get_chg_current(void);
-extern bool fan54015_get_opa_mode(void);
 extern int fan54015_register_notifier(struct notifier_block *nb);
 extern int fan54015_unregister_notifier(struct notifier_block *nb);
+extern bool fan54015_get_opa_mode(void);
+extern void fan54015_set_thermal_current(int reg_val);
 #endif

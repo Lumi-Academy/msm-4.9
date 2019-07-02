@@ -681,12 +681,11 @@
 		reg-names = "core", "phy_csr";
 		#address-cells = <1>;
 		#size-cells = <1>;
-		ranges;
+        ranges;
+        interrupts = <0 134 0>,<0 140 0>,<0 136 0>;
+        interrupt-names = "core_irq", "async_irq", "phy_irq";
 
-		interrupts = <0 134 0>,<0 140 0>;
-		interrupt-names = "core_irq", "async_irq";
-
-		hsusb_vdd_dig-supply = <&pm8937_l2>;
+        hsusb_vdd_dig-supply = <&pm8937_l2>;
 		HSUSB_1p8-supply = <&pm8937_l7>;
 		HSUSB_3p3-supply = <&pm8937_l13>;
 		qcom,vdd-voltage-level = <0 1200000 1200000>;
