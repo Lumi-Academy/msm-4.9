@@ -29,6 +29,8 @@
 #include "dsi-panel-hx8394d-wxga-video.dtsi"
 #include "dsi-panel-inxnt51021-1200p-video.dtsi"
 #include "dsi-panel-icnl9911-hd-video-holitek.dtsi"
+#include "dsi-panel-ft8006p-720-video.dtsi"
+
 &soc {
 	dsi_panel_pwr_supply: dsi_panel_pwr_supply {
 		#address-cells = <1>;
@@ -106,6 +108,22 @@
 
 &dsi_icnl9911_hd_video_holitek{
     qcom,mdss-dsi-bl-pmic-control-type = "bl_ctrl_pwm";
+    qcom,mdss-dsi-bl-pmic-pwm-frequency = <100>;
+    qcom,mdss-dsi-bl-pwm-pmi;
+    pwms = <&pmi632_pwm 3 1000000>;
+    qcom,mdss-dsi-pwm-gpio = <&pmi632_gpios 6 0>;
+    pinctrl-names = "default";
+    pinctrl-0 = <&pwm_out_default>;
+    qcom,panel-supply-entries = <&dsi_panel_pwr_supply>;
+};
+
+&dsi_ft8006p_720_video{
+	qcom,mdss-dsi-panel-timings-phy-v2= [20 1c 06 07 03 02 04 0a
+		20 1c 06 07 03 02 04 0a
+		20 1c 06 07 03 02 04 0a
+		20 1c 06 07 03 02 04 0a
+		20 13 06 07 03 02 04 0a];
+	qcom,mdss-dsi-bl-pmic-control-type = "bl_ctrl_pwm";
     qcom,mdss-dsi-bl-pmic-pwm-frequency = <100>;
     qcom,mdss-dsi-bl-pwm-pmi;
     pwms = <&pmi632_pwm 3 1000000>;
