@@ -424,6 +424,7 @@ struct qpnp_lbc_chip {
 	struct extcon_dev		*extcon;
 };
 
+static void set_fan45015_current(struct qpnp_lbc_chip *chip);
 static void qpnp_lbc_enable_irq(struct qpnp_lbc_chip *chip,
 					struct qpnp_lbc_irq *irq)
 {
@@ -1030,7 +1031,7 @@ static int qpnp_lbc_ibatsafe_set(struct qpnp_lbc_chip *chip, int safe_current)
 }
 
 #define QPNP_LBC_IBATMAX_MIN	90
-#define QPNP_LBC_IBATMAX_MAX	540//1440
+#define QPNP_LBC_IBATMAX_MAX	450//1440
 /*
  * Set maximum current limit from charger
  * ibat =  System current + charging current
@@ -1313,8 +1314,11 @@ static int get_prop_batt_status(struct qpnp_lbc_chip *chip)
 	}
 
 	if (reg_val & FAST_CHG_ON_IRQ)
-		return POWER_SUPPLY_STATUS_CHARGING;
+    {
+        set_fan45015_current(chip);
+        return POWER_SUPPLY_STATUS_CHARGING;
 
+    }
 	return POWER_SUPPLY_STATUS_DISCHARGING;
 }
 
@@ -1435,6 +1439,22 @@ static void qpnp_lbc_set_appropriate_current(struct qpnp_lbc_chip *chip)
 	pr_err("@@ setting charger current %d mA\n", chg_current);
 	qpnp_lbc_ibatmax_set(chip, chg_current);
 }
+static void set_fan45015_current(struct qpnp_lbc_chip *chip)
+{
+    if(chip->usb_supply_type == POWER_SUPPLY_TYPE_USB)
+        fan54015_set_thermal_current(0);
+    else
+    {
+        if (chip->bat_is_cool && chip->cfg_cool_bat_chg_ma)
+            fan54015_set_thermal_current(0);
+        else if (chip->bat_is_warm && chip->cfg_warm_bat_chg_ma)
+            fan54015_set_thermal_current(0);
+        else
+            fan54015_set_thermal_current(1);
+    } 
+
+}
+
 
 static void qpnp_batt_external_power_changed(struct power_supply *psy)
 {
@@ -2146,6 +2166,7 @@ static void qpnp_lbc_jeita_adc_notification(enum qpnp_tm_state state, void *ctx)
 		qpnp_lbc_set_appropriate_vddmax(chip);
 		qpnp_lbc_set_appropriate_current(chip);
 		spin_unlock_irqrestore(&chip->ibat_change_lock, flags);
+            set_fan45015_current(chip);
 	}
 
 	pr_debug("warm %d, cool %d, low = %d deciDegC, high = %d deciDegC\n",
@@ -2693,6 +2714,7 @@ static irqreturn_t qpnp_lbc_usbin_valid_irq_handler(int irq, void *_chip)
 			qpnp_lbc_set_appropriate_current(chip);
 			spin_unlock_irqrestore(&chip->ibat_change_lock,
 								flags);
+            set_fan45015_current(chip);
 			if (chip->cfg_collapsible_chgr_support)
 				chip->non_collapsible_chgr_detected = false;
 
@@ -2759,7 +2781,11 @@ static irqreturn_t qpnp_lbc_batt_temp_irq_handler(int irq, void *_chip)
 	int batt_temp_good;
 
 	batt_temp_good = qpnp_lbc_is_batt_temp_ok(chip);
-	pr_debug("batt-temp triggered: %d\n", batt_temp_good);
+    if(batt_temp_good== 0)
+        fan54015_stop_charging(); 
+    if(batt_temp_good== 1)
+        fan54015_enable_chg();
+    pr_debug("batt-temp triggered: %d\n", batt_temp_good);
 
 	pr_debug("power supply changed batt_psy\n");
 	power_supply_changed(chip->batt_psy);
