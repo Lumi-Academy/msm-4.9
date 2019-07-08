@@ -122,7 +122,7 @@ struct upgrade_func {
     bool pramboot_supported;
     u8 *pramboot;
     u32 pb_length;
-    int (*init)(void);
+    int (*init)(u8 *, u32); 
     int (*upgrade)(struct i2c_client *, u8 *, u32);
     int (*get_hlic_ver)(u8 *);
     int (*lic_upgrade)(struct i2c_client *, u8 *, u32);
@@ -148,7 +148,7 @@ struct upgrade_fw {
 * Global variable or extern global variabls/functions
 *****************************************************************************/
 extern struct fts_upgrade *fwupgrade;
-extern struct upgrade_func upgrade_func_ft6336gu;
+extern struct upgrade_func upgrade_func_ft5422;
 
 /*****************************************************************************
 * Static function prototypes

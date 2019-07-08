@@ -44,25 +44,25 @@
 *****************************************************************************/
 /* Upgrade FW/PRAMBOOT/LCD CFG */
 u8 fw_file[] = {
-#include FTS_UPGRADE_FW_HLT_FILE
+#include FTS_UPGRADE_FW_FILE
 };
 
 u8 fw_file2[] = {
-#include FTS_UPGRADE_FW_LD_FILE
+#include FTS_UPGRADE_FW2_FILE
 };
 
 u8 fw_file3[] = {
-#include FTS_UPGRADE_FW_JT_FILE
+#include FTS_UPGRADE_FW3_FILE
 };
 
 struct upgrade_fw fw_list[] = {
-    {FTS_VENDOR_HLT, fw_file, sizeof(fw_file)},
-    {FTS_VENDOR_LD, fw_file2, sizeof(fw_file2)},
-    {FTS_VENDOR_JT, fw_file3, sizeof(fw_file3)},
+    {FTS_MODULE_ID, fw_file, sizeof(fw_file)},
+    {FTS_MODULE2_ID, fw_file2, sizeof(fw_file2)},
+    {FTS_MODULE3_ID, fw_file3, sizeof(fw_file3)},
 };
 
 struct upgrade_func *upgrade_func_list[] = {
-    &upgrade_func_ft6336gu,
+    &upgrade_func_ft5422,
 };
 struct fts_upgrade *fwupgrade;
 
@@ -1742,9 +1742,8 @@ static int fts_fwupg_get_fw_file(struct fts_ts_data *ts_data)
 static void fts_fwupg_init_ic_detail(void)
 {
     struct fts_upgrade *upg = fwupgrade;
-
     if (upg && upg->func && upg->func->init) {
-        upg->func->init();
+        upg->func->init(upg->fw, upg->fw_length);
     }
 }
 
@@ -1769,26 +1768,16 @@ static void fts_fwupg_work(struct work_struct *work)
 
     FTS_INFO("get upgrade fw file");
     ret = fts_fwupg_get_fw_file(ts_data);
-    fts_fwupg_init_ic_detail();
     if (ret < 0) {
         FTS_ERROR("get file fail, can't upgrade");
+
+
     } 
-   // else {
-   //     /* run auto upgrade */
-   //     if(panel_name_find) {
-   //         strncpy(panel_name,panel_name_find,MDSS_MAX_PANEL_LEN);
-   //         FTS_INFO("panel_name = %s",panel_name);
-
-   //         if(strstr(panel_name, "jt")) {
-   //             FTS_INFO("detect JT lcm, ignore fw auto upgrade...");
-   //         }else {
-   //             fts_fwupg_auto_upgrade(ts_data);
-   //         }
-   //     }else {
-   //         FTS_ERROR("detect JT lcm, ignore fw auto upgrade...");
-   //     }
-   // }
-
+    else 
+    {
+        fts_fwupg_init_ic_detail();
+        fts_fwupg_auto_upgrade(ts_data);
+    }
 #if FTS_ESDCHECK_EN
     fts_esdcheck_switch(ENABLE);
 #endif

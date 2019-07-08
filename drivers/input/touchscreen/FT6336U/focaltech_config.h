@@ -101,7 +101,7 @@
 /*
  * choose your ic chip type of focaltech
  */
-#define FTS_CHIP_TYPE   _FT6336U
+#define FTS_CHIP_TYPE   _FT5436
 
 /******************* Enables *********************/
 /*********** 1 to enable, 0 to disable ***********/
@@ -195,7 +195,7 @@
  * 0:No check vendor_id (default)
  * 1/2/3: Check vendor_id for vendor compatibility
  */
-#define FTS_GET_VENDOR_ID_NUM                   3
+#define FTS_GET_VENDOR_ID_NUM                   1
 
 /*
  * vendor_id(s) for vendor(s) to be compatible with.
@@ -206,28 +206,29 @@
  * FTS_GET_VENDOR_ID_NUM >= 2, compatible with FTS_VENDOR_ID2
  * FTS_GET_VENDOR_ID_NUM >= 3, compatible with FTS_VENDOR_ID3
  */
-#define FTS_VENDOR_HLT                          0x0082
-#define FTS_VENDOR_LD                         0x0025
-#define FTS_VENDOR_JT                         0x0000
+#define FTS_MODULE_ID                          0x0000
+#define FTS_MODULE2_ID                         0x0000
+#define FTS_MODULE3_ID                         0x0000
+
 
 /*
  * FW.i file for auto upgrade, you must replace it with your own
  * define your own fw_file, the sample one to be replaced is invalid
  * NOTE: if FTS_GET_VENDOR_ID_NUM > 1, it's the fw corresponding with FTS_VENDOR_ID
  */
-#define FTS_UPGRADE_FW_HLT_FILE                   "include/firmware/QM215_HLT_FT6336U_480x854_V04_20190129_app.i"
+#define FTS_UPGRADE_FW_FILE                   "include/firmware/QM215_V320_FT5436_V07_D01_20190705_app.i"
 
 /*
  * if FTS_GET_VENDOR_ID_NUM >= 2, fw corrsponding with FTS_VENDOR_ID2
  * define your own fw_file, the sample one is invalid
  */
-#define FTS_UPGRADE_FW_LD_FILE                     "include/firmware/QM215_LD_FT6336U_480x854_V02_20190213_app.i"
+#define FTS_UPGRADE_FW2_FILE                     "include/firmware/QM215_LD_FT6336U_480x854_V02_20190213_app.i"
 
 /*
  * if FTS_GET_VENDOR_ID_NUM >= 3, fw corrsponding with FTS_VENDOR_ID3
  * define your own fw_file, the sample one is invalid
  */
-#define FTS_UPGRADE_FW_JT_FILE                     "include/firmware/QM215_JT_FT6336U_480x854_V03.i"
+#define FTS_UPGRADE_FW3_FILE                     "include/firmware/QM215_JT_FT6336U_480x854_V03.i"
 
 /*********************************************************/
 
