@@ -19,7 +19,7 @@
 #include <linux/sched.h>
 #endif
 
-#define FAN_54015_DEBUG
+//#define FAN_54015_DEBUG
 #ifdef FAN_54015_DEBUG
 #define SPRD_EX_DEBUG(format, arg...) printk("fan54015: " "@@@" format, ## arg)
 #else
@@ -202,8 +202,6 @@ EXPORT_SYMBOL_GPL(fan54015_get_monitor_val);
 
  void fan54015_enable_chg()
 {
-//	 gpio_set_value_cansleep(pdata->chg_dis_gpio,0);
-//	 printk("@@ zm++ %s pdata->chg_dis_gpio = %d \n", __func__, pdata->chg_dis_gpio);
 	gpio_set_value(12,0);/*zhangbing@uniscope_drv 20160708 add*/
 }
 EXPORT_SYMBOL_GPL(fan54015_enable_chg);
@@ -231,7 +229,6 @@ EXPORT_SYMBOL_GPL(fan54015_get_opa_mode);
 
 void fan54015_set_thermal_current(int reg_val)
 {
-    printk("zhangming %s,%d\n",__func__,__LINE__);
     if(reg_val == 0)
 	    fan54015_set_value(FAN5405_REG_CONTROL1, FAN5405_IINLIM, FAN5405_IINLIM_SHIFT, 0x01);
     else
@@ -255,7 +252,7 @@ static ssize_t set_regs_store(struct device *dev,
 
 	reg = (set_value & 0xff00) >> 8;
 	val = set_value & 0xff;
-	printk("fan54015 set reg = %d value = %d\n",reg, val);
+	SPRD_EX_DEBUG("fan54015 set reg = %d value = %d\n",reg, val);
 	ret = fan54015_write_reg(reg, val);
 
 	if (ret < 0){
@@ -398,11 +395,12 @@ static int fan54015_probe(
 	/*zhangbing@uniscope_drv 20160708 add to parse DT and request GPIO end*/
 
 	/*zhangbing@uniscope_drv 20160708 add to write all registers when probe begin*/
-	fan54015_write_reg(FAN5405_REG_SAFETY,0x69);//0x4f
+	fan54015_write_reg(FAN5405_REG_SAFETY,0x69);
 	fan54015_write_reg(FAN5405_REG_CONTROL1,0xf8);
-	fan54015_write_reg(FAN5405_REG_IBAT,0x23);//0x40  
-	fan54015_write_reg(FAN5405_REG_OREG,0xfa); //0x92
-	fan54015_write_reg(FAN5405_REG_SP_CHARGER,0x04);//0x80
+	fan54015_write_reg(0x51,0x1);
+	fan54015_write_reg(FAN5405_REG_IBAT,0x33);
+	fan54015_write_reg(FAN5405_REG_OREG,0xb0); 
+	fan54015_write_reg(FAN5405_REG_SP_CHARGER,0x04);
 	/*zhangbing@uniscope_drv 20160708 add to write all registers when probe end*/
 	
 	if (!i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_BYTE_DATA)) {
