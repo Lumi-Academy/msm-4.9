@@ -1209,6 +1209,22 @@ static int fts_parse_dt(struct device *dev, struct fts_ts_platform_data *pdata)
     return 0;
 }
 
+static void fts_suspend_work(struct work_struct *work)
+{
+	struct fts_ts_data *ts_data = container_of(work, struct fts_ts_data,
+			suspend_work.work);
+
+	fts_ts_suspend(&ts_data->client->dev);
+}
+
+static void fts_resume_work(struct work_struct *work)
+{
+	struct fts_ts_data *ts_data = container_of(work, struct fts_ts_data,
+			resume_work.work);
+
+	fts_ts_resume(&ts_data->client->dev);
+}
+
 #if defined(CONFIG_FB)
 /*****************************************************************************
 *  Name: fb_notifier_callback
@@ -1229,9 +1245,9 @@ static int fb_notifier_callback(struct notifier_block *self,
         fts_data && fts_data->client) {
         blank = evdata->data;
         if (*blank == FB_BLANK_UNBLANK)
-            fts_ts_resume(&fts_data->client->dev);
+            queue_delayed_work(fts_data->ts_workqueue, &fts_data->resume_work, msecs_to_jiffies(0));
         else if (*blank == FB_BLANK_POWERDOWN)
-            fts_ts_suspend(&fts_data->client->dev);
+            queue_delayed_work(fts_data->ts_workqueue, &fts_data->suspend_work, msecs_to_jiffies(0));
     }
 
     return 0;
@@ -1484,6 +1500,8 @@ static int fts_ts_probe(struct i2c_client *client, const struct i2c_device_id *i
 
    // ontim_update_fw_ver(client);
     //REGISTER_AND_INIT_ONTIM_DEBUG_FOR_THIS_DEV();
+    INIT_DELAYED_WORK(&ts_data->resume_work, fts_resume_work);
+    INIT_DELAYED_WORK(&ts_data->suspend_work, fts_suspend_work);
 
     FTS_FUNC_EXIT();
     return 0;
@@ -1577,6 +1595,9 @@ static int fts_ts_remove(struct i2c_client *client)
 
     if (ts_data->ts_workqueue)
         destroy_workqueue(ts_data->ts_workqueue);
+
+    cancel_delayed_work(&ts_data->resume_work);
+    cancel_delayed_work(&ts_data->suspend_work);
 
 #if FTS_POWER_SOURCE_CUST_EN
 #if FTS_PINCTRL_EN
