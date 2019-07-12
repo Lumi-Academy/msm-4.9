@@ -1666,6 +1666,7 @@ static int fts_ts_suspend(struct device *dev)
     ret = fts_i2c_write_reg(ts_data->client, FTS_REG_POWER_MODE, FTS_REG_POWER_MODE_SLEEP_VALUE);
     if (ret < 0)
         FTS_ERROR("set TP to sleep mode fail, ret=%d", ret);
+    else FTS_INFO("TP enter to sleep mode, ret=%d", ret);
 #endif
 
     ts_data->suspended = true;
