@@ -216,7 +216,7 @@
  * define your own fw_file, the sample one to be replaced is invalid
  * NOTE: if FTS_GET_VENDOR_ID_NUM > 1, it's the fw corresponding with FTS_VENDOR_ID
  */
-#define FTS_UPGRADE_FW_FILE                   "include/firmware/QM215_V320_FT5436_V07_D01_20190705_app.i"
+#define FTS_UPGRADE_FW_FILE                   "include/firmware/QM215_V320_FT5436_V09_D01_20190715_app.i"
 
 /*
  * if FTS_GET_VENDOR_ID_NUM >= 2, fw corrsponding with FTS_VENDOR_ID2
