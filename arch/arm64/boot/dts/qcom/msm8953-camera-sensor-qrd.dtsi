@@ -143,7 +143,7 @@
 		qcom,led-flash-src = <&led_flash0>;
 	
 		qcom,actuator-src = <&actuator0>;
-		qcom,eeprom-src = <&eeprom0>;
+//		qcom,eeprom-src = <&eeprom0>;
 		cam_vio-supply = <&pm8953_l6>;
 		cam_vdig-supply = <&pm8953_l2>;
 		cam_vaf-supply = <&pm8953_l17>;
@@ -179,7 +179,7 @@
 		qcom,clock-rates = <24000000 0>;
 	};
 
-	/* dual 5025 */
+	/* aux gc2385 */
 
 	qcom,camera@2 {
 		cell-index = <2>;
@@ -192,32 +192,31 @@
 		cam_vio-supply = <&pm8953_l6>;
 		qcom,cam-vreg-name = "cam_vdig", "cam_vio";
 
-		qcom,cam-vreg-min-voltage = <1200000 1800000>;
-		qcom,cam-vreg-max-voltage = <1200000 1800000>;
-		qcom,cam-vreg-op-mode = <200000 0>;
+		qcom,cam-vreg-min-voltage = <1050000 1800000>;
+		qcom,cam-vreg-max-voltage = <1050000 1800000>;
+		qcom,cam-vreg-op-mode = <1050000 0>;
 		pinctrl-names = "cam_default", "cam_suspend";
-		pinctrl-0 = <&cam_sensor_mclk3_default
-				&cam_sensor_front_default>;
-		pinctrl-1 = <&cam_sensor_mclk3_sleep
-				&cam_sensor_front_sleep>;
-		gpios = <&tlmm 28 0>,
-			<&tlmm 129 0>,
+		pinctrl-0 = <&cam_sensor_mclk3_default 
+				&cam_sensor_front_default 
+				&cam_sensor_rear_vana>;
+		pinctrl-1 = <&cam_sensor_mclk3_sleep 
+				&cam_sensor_front_sleep 
+				&cam_sensor_rear_vana_sleep>;
+		gpios = <&tlmm 128 0>,
 			<&tlmm 130 0>,
 			<&tlmm 134 0>,
 			<&tlmm 94 0>,
                         <&tlmm 95 0>;
-		qcom,gpio-reset = <1>;
-		qcom,gpio-standby = <2>;
-		qcom,gpio-vana = <3>;
-		qcom,gpio-req-tbl-num = <0 1 2 3 4 5>;
-		qcom,gpio-req-tbl-flags = <1 0 0 0 0 0>;
-		qcom,gpio-req-tbl-label = "CAMIF_MCLK2",
-			"CAM_RESET2",
+		qcom,gpio-standby = <1>;
+		qcom,gpio-vana = <2>;
+		qcom,gpio-req-tbl-num = <0 1 2 3 4>;
+		qcom,gpio-req-tbl-flags = <1 0 0 0 0>;
+		qcom,gpio-req-tbl-label = "CAMIF_MCLK3",
 			"CAM_STANDBY2",
 			"CAM_VANA0",
 			"CAM_MIPI_SEL_POW",
                         "CAM_MIPI_SEL";
-		qcom,sensor-position = <1>;
+		qcom,sensor-position = <0x100>;
 		qcom,sensor-mode = <0>;
 		qcom,cci-master = <1>;
 		status = "ok";
@@ -229,7 +228,7 @@
 
 	/* front 4h7 */
 
-	qcom,camera@1 {
+/*	qcom,camera@1 {
 		cell-index = <1>;
 		compatible = "qcom,camera";
 		reg = <0x01>;
@@ -269,10 +268,10 @@
 		clock-names = "cam_src_clk", "cam_clk";
 		qcom,clock-rates = <24000000 0>;
 	};
-
+*/
 	/* UW ov8856 added by linhbh2 VSM 15/07/2019 */
 
-	qcom,camera@3 {
+/*	qcom,camera@3 {
 		cell-index = <3>;
 		compatible = "qcom,camera";
 		reg = <0x03>;
@@ -315,6 +314,6 @@
 		clock-names = "cam_src_clk", "cam_clk";
 		qcom,clock-rates = <24000000 0>;
 	};
-
+*/
 
 };
