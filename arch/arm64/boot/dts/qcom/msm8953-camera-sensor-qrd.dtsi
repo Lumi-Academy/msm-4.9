@@ -198,10 +198,12 @@
 		pinctrl-names = "cam_default", "cam_suspend";
 		pinctrl-0 = <&cam_sensor_mclk3_default 
 				&cam_sensor_front_default 
-				&cam_sensor_rear_vana>;
+				&cam_sensor_rear_vana
+				&cam_sensor_mipi_default>;
 		pinctrl-1 = <&cam_sensor_mclk3_sleep 
 				&cam_sensor_front_sleep 
-				&cam_sensor_rear_vana_sleep>;
+				&cam_sensor_rear_vana_sleep
+				&cam_sensor_mipi_sleep>;
 		gpios = <&tlmm 128 0>,
 			<&tlmm 130 0>,
 			<&tlmm 134 0>,
@@ -209,6 +211,8 @@
                         <&tlmm 95 0>;
 		qcom,gpio-standby = <1>;
 		qcom,gpio-vana = <2>;
+		qcom,gpio-custom1 = <3>;
+		qcom,gpio-custom2 = <4>;
 		qcom,gpio-req-tbl-num = <0 1 2 3 4>;
 		qcom,gpio-req-tbl-flags = <1 0 0 0 0>;
 		qcom,gpio-req-tbl-label = "CAMIF_MCLK3",
