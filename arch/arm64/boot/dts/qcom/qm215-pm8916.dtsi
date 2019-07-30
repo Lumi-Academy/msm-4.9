@@ -147,6 +147,14 @@
 		drive-strength = <8>;
 		output-high;
 	};
+
+   usb_id_default: usb_id_default {
+       pins = "gpio4";
+       function = "normal";
+       input-enable;
+       bias-pull-up;
+       power-source = <0>;
+   };
 };
 
 &soc {
@@ -591,5 +599,8 @@
 	hsusb_vdd_dig-supply = <&usb_vdig_supply>;
 	HSUSB_1p8-supply = <&pm8916_l7>;
 	HSUSB_3p3-supply = <&pm8916_l13>;
-	extcon = <&pm8916_chg>;
+    extcon = <&pm8916_chg>;
+    qcom,usbid-gpio = <&pm8916_gpios 4 0>;
+    pinctrl-names = "default";
+    pinctrl-0 = <&usb_id_default>;
 };
