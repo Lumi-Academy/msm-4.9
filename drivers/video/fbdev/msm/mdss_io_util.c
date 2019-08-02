@@ -269,6 +269,10 @@ int msm_mdss_enable_vreg(struct mdss_vreg *in_vreg, int num_vreg, int enable)
 	if (enable) {
 		for (i = 0; i < num_vreg; i++) {
 			rc = PTR_RET(in_vreg[i].vreg);
+			//Since ibb and lab doen't disable we don't need to enable it again.
+			if((cts_gesture_status != 0) && ((strcmp(in_vreg[i].vreg_name,"lab") == 0) ||
+				(strcmp(in_vreg[i].vreg_name,"ibb") == 0)))
+							continue;
 			if (rc) {
 				DEV_ERR("%pS->%s: %s regulator error. rc=%d\n",
 					__builtin_return_address(0), __func__,
@@ -287,6 +291,7 @@ int msm_mdss_enable_vreg(struct mdss_vreg *in_vreg, int num_vreg, int enable)
 					in_vreg[i].vreg_name);
 				goto vreg_set_opt_mode_fail;
 			}
+
 			rc = regulator_enable(in_vreg[i].vreg);
 			if (in_vreg[i].post_on_sleep && need_sleep)
 				usleep_range((in_vreg[i].post_on_sleep * 1000),
@@ -297,10 +302,14 @@ int msm_mdss_enable_vreg(struct mdss_vreg *in_vreg, int num_vreg, int enable)
 					in_vreg[i].vreg_name);
 				goto disable_vreg;
 			}
+			msleep(10);
 		}
+
 	} else {
-		if (cts_gesture_status == 0) {
-			for (i = num_vreg-1; i >= 0; i--) {			
+			for (i = num_vreg-1; i >= 0; i--) {
+				if((cts_gesture_status != 0) && ((strcmp(in_vreg[i].vreg_name,"lab") == 0) ||
+					(strcmp(in_vreg[i].vreg_name,"ibb") == 0)))
+								continue;
 				if (in_vreg[i].pre_off_sleep)
 					usleep_range((in_vreg[i].pre_off_sleep * 1000),
 						(in_vreg[i].pre_off_sleep * 1000) + 10);
@@ -309,12 +318,10 @@ int msm_mdss_enable_vreg(struct mdss_vreg *in_vreg, int num_vreg, int enable)
 
 				if (regulator_is_enabled(in_vreg[i].vreg))
 					regulator_disable(in_vreg[i].vreg);
-
 				if (in_vreg[i].post_off_sleep)
 					usleep_range((in_vreg[i].post_off_sleep * 1000),
 					(in_vreg[i].post_off_sleep * 1000) + 10);
 			}
-		}
 	}
 	return rc;
 
