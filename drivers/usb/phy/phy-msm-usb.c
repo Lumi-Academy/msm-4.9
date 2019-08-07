@@ -2521,14 +2521,16 @@ static void msm_chg_detect_work(struct work_struct *w)
 	struct msm_otg *motg = container_of(w, struct msm_otg, chg_work.work);
 	struct usb_phy *phy = &motg->phy;
 	bool is_dcd = false, tmout, vout, queue_sm_work = false;
-	static bool dcd;
+	static bool dcd, host_mode;
 	u32 line_state, dm_vlgc;
 	unsigned long delay = 0;
 
 	dev_dbg(phy->dev, "chg detection work\n");
 	msm_otg_dbg_log_event(phy, "CHG DETECTION WORK",
 			motg->chg_state, get_pm_runtime_counter(phy->dev));
-
+    	host_mode = fan54015_get_opa_mode();
+   	if(host_mode) 
+          	return;
 	switch (motg->chg_state) {
 	case USB_CHG_STATE_UNDEFINED:
 		pm_runtime_get_sync(phy->dev);
