@@ -1382,7 +1382,7 @@ static int mdss_dsi_off(struct mdss_panel_data *pdata, int power_state)
 				panel_data);
 
 	panel_info = &ctrl_pdata->panel_data.panel_info;
-
+	pr_info("%s+\n", __func__);
 	pr_debug("%s+: ctrl=%pK ndx=%d power_state=%d\n",
 		__func__, ctrl_pdata, ctrl_pdata->ndx, power_state);
 
@@ -1437,6 +1437,7 @@ panel_power_ctrl:
 
 	/* Initialize Max Packet size for DCS reads */
 	ctrl_pdata->cur_max_pkt_size = 0;
+	pr_info("%s-\n", __func__);
 end:
 	pr_debug("%s-:\n", __func__);
 
@@ -1562,7 +1563,7 @@ int mdss_dsi_on(struct mdss_panel_data *pdata)
 
 	if (ctrl_pdata->debugfs_info)
 		mdss_dsi_validate_debugfs_info(ctrl_pdata);
-
+	pr_info("%s+\n", __func__);
 	cur_power_state = pdata->panel_info.panel_power_state;
 	pr_debug("%s+: ctrl=%pK ndx=%d cur_power_state=%d\n", __func__,
 		ctrl_pdata, ctrl_pdata->ndx, cur_power_state);
@@ -1652,6 +1653,7 @@ int mdss_dsi_on(struct mdss_panel_data *pdata)
 		mdss_dsi_clk_ctrl(ctrl_pdata, ctrl_pdata->dsi_clk_handle,
 				  MDSS_DSI_ALL_CLKS, MDSS_DSI_CLK_OFF);
 
+	pr_info("%s-\n", __func__);
 end:
 	pr_debug("%s-:\n", __func__);
 	return ret;
