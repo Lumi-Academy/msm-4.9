@@ -412,7 +412,7 @@ static int fan54015_probe(
 	device_create_file(&client->dev, &dev_attr_dump_regs);
 	device_create_file(&client->dev, &dev_attr_set_regs);
 #endif
-	SPRD_EX_DEBUG("@@@@@@@fan54015_probe ok\n");
+	pr_info("@@@@@@@fan54015_probe ok\n");
 	
 	return rc;
 

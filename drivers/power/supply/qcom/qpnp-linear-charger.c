@@ -1751,6 +1751,10 @@ static int qpnp_batt_power_set_property(struct power_supply *psy,
 		break;
 	case POWER_SUPPLY_PROP_CHARGING_ENABLED:
 		chip->cfg_charging_disabled = !(val->intval);
+            	if(val->intval)
+                  fan54015_enable_chg();
+            	else
+                  fan54015_stop_charging();
 		rc = qpnp_lbc_charger_enable(chip, USER,
 						!chip->cfg_charging_disabled);
 		break;
@@ -3626,7 +3630,7 @@ chip->batt_psy_d.external_power_changed =
 			pr_err("Couldn't create lbc_config debug file\n");
 	}
 
-	pr_debug("Probe chg_dis=%d bpd=%d usb=%d batt_pres=%d batt_volt=%d soc=%d\n",
+	pr_info("Probe chg_dis=%d bpd=%d usb=%d batt_pres=%d batt_volt=%d soc=%d\n",
 			chip->cfg_charging_disabled,
 			chip->cfg_bpd_detection,
 			qpnp_lbc_is_usb_chg_plugged_in(chip),

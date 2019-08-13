@@ -259,6 +259,7 @@ struct qpnp_bms_chip {
 	wait_queue_head_t		bms_wait_q;
 	struct delayed_work		monitor_soc_work;
 	struct delayed_work		voltage_soc_timeout_work;
+	struct delayed_work		re_calculate_initial_soc;
 	struct mutex			bms_data_mutex;
 	struct mutex			bms_device_mutex;
 	struct mutex			last_soc_mutex;
@@ -2983,7 +2984,8 @@ static int calculate_initial_soc(struct qpnp_bms_chip *chip)
 	rc = read_shutdown_ocv_soc(chip);
 	if (rc < 0  || chip->dt.cfg_ignore_shutdown_soc)
 		chip->shutdown_soc_invalid = true;
-
+	if(chip->shutdown_soc_invalid)
+		schedule_delayed_work(&chip->re_calculate_initial_soc, msecs_to_jiffies(200));
 	if (chip->warm_reset) {
 		/*
 		 * if we have powered on from warm reset -
@@ -3042,6 +3044,66 @@ static int calculate_initial_soc(struct qpnp_bms_chip *chip)
 		chip->calculated_soc, chip->last_ocv_uv);
 
 	return 0;
+}
+#define CHARGING_OFFSET 40000
+static void re_calculate_initial_soc(struct work_struct *work)
+{
+	struct qpnp_bms_chip *chip = container_of(work,
+				struct qpnp_bms_chip,
+				re_calculate_initial_soc.work);
+	int rc, batt_temp = 0, est_ocv = 0, present = 0;
+	union power_supply_propval val = {0, };
+	
+	pr_info("%s is running \n", __func__);
+	bms_stay_awake(&chip->vbms_soc_wake_source);
+	rc = get_batt_therm(chip, &batt_temp);
+	if (rc < 0) {
+		pr_err("Unable to read batt temp, using default=%d\n",
+						BMS_DEFAULT_TEMP);
+		batt_temp = BMS_DEFAULT_TEMP;
+	}
+	present = is_charger_present(chip);
+	while(!chip->batt_psy)
+	{
+		chip->batt_psy = power_supply_get_by_name("battery");
+		if(!chip->batt_psy)
+			msleep(200);
+	}
+	if(present)
+	{
+		/*disable */
+		val.intval = 0;
+		power_supply_set_property(chip->batt_psy, POWER_SUPPLY_PROP_CHARGING_ENABLED, &val);
+		pr_info(" temporarily disable charger \n");
+		msleep(100);
+		est_ocv = estimate_ocv(chip);
+		est_ocv = est_ocv - CHARGING_OFFSET;
+		chip->last_ocv_uv = est_ocv;
+		chip->calculated_soc = lookup_soc_ocv(chip, est_ocv, batt_temp);
+		chip->last_soc = chip->calculated_soc;
+		/* store the start-up OCV for voltage-based-soc */
+		chip->voltage_soc_uv = chip->last_ocv_uv;
+		/*enable again */
+		val.intval = 1;
+		power_supply_set_property(chip->batt_psy, POWER_SUPPLY_PROP_CHARGING_ENABLED, &val);
+		pr_info(" enable charger again !!! \n");
+	}
+	else
+	{
+		pr_info(" No need to disable charger !!! \n");
+		est_ocv = estimate_ocv(chip);
+		chip->last_ocv_uv = est_ocv;
+		chip->calculated_soc = lookup_soc_ocv(chip, est_ocv, batt_temp);
+		chip->last_soc = chip->calculated_soc;
+		/* store the start-up OCV for voltage-based-soc */
+		chip->voltage_soc_uv = chip->last_ocv_uv;
+	}
+	pr_info("warm_reset=%d est_ocv=%d  shutdown_soc_invalid=%d shutdown_ocv=%d shutdown_soc=%d last_soc=%d calculated_soc=%d last_ocv_uv=%d charger_present=%d \n",
+		chip->warm_reset, est_ocv, chip->shutdown_soc_invalid,
+		chip->shutdown_ocv, chip->shutdown_soc, chip->last_soc,
+		chip->calculated_soc, chip->last_ocv_uv, present);
+
+	bms_relax(&chip->vbms_soc_wake_source);
 }
 
 static int calculate_initial_aging_comp(struct qpnp_bms_chip *chip)
@@ -3999,6 +4061,7 @@ static int qpnp_vm_bms_probe(struct platform_device *pdev)
 	wakeup_source_init(&chip->vbms_cv_wake_source.source, "vbms_cv_wake");
 	wakeup_source_init(&chip->vbms_soc_wake_source.source, "vbms_soc_wake");
 	INIT_DELAYED_WORK(&chip->monitor_soc_work, monitor_soc_work);
+	INIT_DELAYED_WORK(&chip->re_calculate_initial_soc, re_calculate_initial_soc);
 	INIT_DELAYED_WORK(&chip->voltage_soc_timeout_work,
 					voltage_soc_timeout_work);
 
