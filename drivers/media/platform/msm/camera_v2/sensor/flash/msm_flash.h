@@ -96,7 +96,7 @@ struct msm_flash_ctrl_t {
 	uint32_t subdev_id;
 	struct mutex *flash_mutex;
 	struct msm_sensor_power_setting_array power_setting_array;
-
+    spinlock_t  xxx_lock;
 	/* flash driver type */
 	enum msm_flash_driver_type flash_driver_type;
 

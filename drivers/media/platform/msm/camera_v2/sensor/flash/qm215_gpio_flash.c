@@ -15,7 +15,7 @@
 #include <linux/export.h>
 #include "msm_camera_io_util.h"
 #include "msm_flash.h"
-
+#include <linux/preempt.h>
 #define FLASH_NAME "qcom,gpio-flash"
 
 #undef CDBG
@@ -34,12 +34,12 @@ static int qm215_flash_sgm37891_cfg(uint16_t gpio_id, uint16_t level)
 	int i;
 	CDBG("enter 37891 flash sprd_flash_sgm37891_cfg gpio_id = %d, level = %d,\n", gpio_id, level);
 
-	gpio_set_value_cansleep(gpio_id, GPIO_OUT_LOW);
-	usleep_range(20, 20);
-	gpio_set_value_cansleep(gpio_id,GPIO_OUT_HIGH);
-	usleep_range(300, 300);
-	gpio_set_value_cansleep(gpio_id, GPIO_OUT_LOW);
-	usleep_range(45, 45);
+	gpio_set_value(gpio_id, GPIO_OUT_LOW);
+	udelay(20);
+	gpio_set_value(gpio_id,GPIO_OUT_HIGH);
+	udelay(300);
+	gpio_set_value(gpio_id, GPIO_OUT_LOW);
+	udelay(45);
 
 	/* for level > 5, output current should be same as that of level 0 */
 	if (level > 7)	//5
@@ -47,14 +47,14 @@ static int qm215_flash_sgm37891_cfg(uint16_t gpio_id, uint16_t level)
 
 	for (i = 0; i < level; i++) 
 	{
-		gpio_set_value_cansleep(gpio_id, GPIO_OUT_HIGH);
-		usleep_range(45, 45);
-		gpio_set_value_cansleep(gpio_id, GPIO_OUT_LOW);
-		usleep_range(45, 45);
+		gpio_set_value(gpio_id, GPIO_OUT_HIGH);
+		udelay(45);
+		gpio_set_value(gpio_id, GPIO_OUT_LOW);
+		udelay(45);
 	}
 
-	gpio_set_value_cansleep(gpio_id, GPIO_OUT_HIGH);
-	usleep_range(800, 800);
+	gpio_set_value(gpio_id, GPIO_OUT_HIGH);
+	udelay(800);
 	
 	return 0;
 }
@@ -65,7 +65,7 @@ static int32_t qm215_flash_sgm37891_low(
 {
 	struct msm_camera_power_ctrl_t *power_info = NULL;
 	struct msm_camera_gpio_num_info *gpio_num_info = NULL;
-
+	unsigned long flags;
 	if (!flash_ctrl) {
 		pr_err("device data NULL\n");
 		return -EINVAL;
@@ -79,13 +79,15 @@ static int32_t qm215_flash_sgm37891_low(
 		gpio_num_info->gpio_num[SENSOR_GPIO_FL_EN], 
 		gpio_num_info->gpio_num[SENSOR_GPIO_FL_RESET]);
 
+	spin_lock_irqsave(&flash_ctrl->xxx_lock, flags);
 	qm215_flash_sgm37891_cfg(gpio_num_info->gpio_num[SENSOR_GPIO_FL_RESET], 6);
-	gpio_set_value_cansleep(gpio_num_info->gpio_num[SENSOR_GPIO_FL_NOW],GPIO_OUT_HIGH);
-	usleep_range(20, 20);
-	gpio_set_value_cansleep(gpio_num_info->gpio_num[SENSOR_GPIO_FL_NOW],GPIO_OUT_LOW);
-	usleep_range(45, 45);
-	gpio_set_value_cansleep(gpio_num_info->gpio_num[SENSOR_GPIO_FL_EN],	GPIO_OUT_HIGH);
-	usleep_range(150, 150);
+	gpio_set_value(gpio_num_info->gpio_num[SENSOR_GPIO_FL_NOW],GPIO_OUT_HIGH);
+	udelay(20);
+	gpio_set_value(gpio_num_info->gpio_num[SENSOR_GPIO_FL_NOW],GPIO_OUT_LOW);
+	udelay(45);
+	gpio_set_value(gpio_num_info->gpio_num[SENSOR_GPIO_FL_EN],	GPIO_OUT_HIGH);
+	udelay(150);
+	spin_unlock_irqrestore(&flash_ctrl->xxx_lock, flags);
 
 //	CDBG("37891 flash qm215_flash_sgm37891_low Exit\n");
 	return 0;
@@ -97,7 +99,8 @@ static int32_t qm215_flash_sgm37891_high(
 {
 	struct msm_camera_power_ctrl_t *power_info = NULL;
 	struct msm_camera_gpio_num_info *gpio_num_info = NULL;
-
+	unsigned long flags;
+	
 	if (!flash_ctrl) {
 		pr_err("device data NULL\n");
 		return -EINVAL;
@@ -111,9 +114,11 @@ static int32_t qm215_flash_sgm37891_high(
 		gpio_num_info->gpio_num[SENSOR_GPIO_FL_EN], 
 		gpio_num_info->gpio_num[SENSOR_GPIO_FL_RESET]);
 
+	spin_lock_irqsave(&flash_ctrl->xxx_lock, flags);
 	qm215_flash_sgm37891_cfg(gpio_num_info->gpio_num[SENSOR_GPIO_FL_RESET], 6);
-	gpio_set_value_cansleep(gpio_num_info->gpio_num[SENSOR_GPIO_FL_NOW],GPIO_OUT_HIGH);
-	usleep_range(130, 130);
+	gpio_set_value(gpio_num_info->gpio_num[SENSOR_GPIO_FL_NOW],GPIO_OUT_HIGH);
+	udelay(130);
+	spin_unlock_irqrestore(&flash_ctrl->xxx_lock, flags);
 
 //	CDBG("37891 flash qm215_flash_sgm37891_high Exit\n");
 	return 0;
@@ -146,10 +151,10 @@ static int32_t qm215_flash_low(
 			GPIO_OUT_HIGH,
 			gpio_num_info->gpio_num[SENSOR_GPIO_FL_EN],
 			GPIO_OUT_HIGH);
-		gpio_set_value_cansleep(
+		gpio_set_value(
 			gpio_num_info->gpio_num[SENSOR_GPIO_FL_NOW],
 			GPIO_OUT_HIGH);
-		gpio_set_value_cansleep(
+		gpio_set_value(
 			gpio_num_info->gpio_num[SENSOR_GPIO_FL_EN],
 			GPIO_OUT_HIGH);
 	}
@@ -182,10 +187,10 @@ static int32_t qm215_flash_high(
 			GPIO_OUT_LOW,
 			gpio_num_info->gpio_num[SENSOR_GPIO_FL_EN],
 			GPIO_OUT_HIGH);
-		gpio_set_value_cansleep(
+		gpio_set_value(
 			gpio_num_info->gpio_num[SENSOR_GPIO_FL_NOW],
 			GPIO_OUT_LOW);
-		gpio_set_value_cansleep(
+		gpio_set_value(
 			gpio_num_info->gpio_num[SENSOR_GPIO_FL_EN],
 			GPIO_OUT_HIGH);
 	}
@@ -244,13 +249,13 @@ static int32_t qm215_flash_off(struct msm_flash_ctrl_t *flash_ctrl,
 		gpio_num_info->gpio_num[SENSOR_GPIO_FL_EN],
 			GPIO_OUT_LOW);
 
-		gpio_set_value_cansleep(
+		gpio_set_value(
 			gpio_num_info->gpio_num[SENSOR_GPIO_FL_RESET],
 			GPIO_OUT_LOW);		
-		gpio_set_value_cansleep(
+		gpio_set_value(
 			gpio_num_info->gpio_num[SENSOR_GPIO_FL_NOW],
 			GPIO_OUT_LOW);
-		gpio_set_value_cansleep(
+		gpio_set_value(
 			gpio_num_info->gpio_num[SENSOR_GPIO_FL_EN],
 			GPIO_OUT_LOW);
 	}
@@ -267,7 +272,7 @@ static int32_t qm215_flash_gpio_init(
 
 	CDBG("Enter qm215_flash_gpio_init 37891");
 	rc = flash_ctrl->func_tbl->camera_flash_off(flash_ctrl, flash_data);
-
+	spin_lock_init(&flash_ctrl->xxx_lock);
 	CDBG("Exit qm215_flash_gpio_init 37891");
 	return rc;
 }
