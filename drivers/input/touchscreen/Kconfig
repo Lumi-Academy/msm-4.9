@@ -1275,16 +1275,16 @@ config TOUCHSCREEN_GT9XX_v28
 
 source "drivers/input/touchscreen/gt9xx_v2.8/Kconfig"
 config TOUCHSCREEN_FTS
-	bool "FT6336U for qcom touchpanel package"
+	bool "FT8006P for qcom touchpanel package"
 	default I2C
 	help
-	  Say Y here if you have a FT6336U touchscreen.
+	  Say Y here if you have a FT8006P touchscreen.
 	  If unsure, say N.
 
 	  To compile this dirver as a module, choose M here: the
 	  module will be called.
 
-source "drivers/input/touchscreen/FT6336U/Kconfig"
+source "drivers/input/touchscreen/focaltech_touch_ft8006p/Kconfig"
 
 config CHIPONE_FINGERPRINT
         tristate "Chipone Finger Print Driver"
