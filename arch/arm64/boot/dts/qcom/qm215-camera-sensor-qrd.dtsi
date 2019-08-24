@@ -196,16 +196,22 @@
 		gpios = <&tlmm 27 0>,
 			<&tlmm 41 0>,
 			<&tlmm 38 0>,
-			<&tlmm 35 0>;
+			<&tlmm 35 0>,
+			<&tlmm 33 0>,
+			<&tlmm 34 0>;
 		qcom,gpio-standby = <3>;
 		qcom,gpio-reset = <2>;
 		qcom,gpio-vdig = <1>;
-		qcom,gpio-req-tbl-num = <0 1 2 3 >;
-		qcom,gpio-req-tbl-flags = <1 0 0 0 >;
+		qcom,gpio-custom1 = <4>;
+		qcom,gpio-custom2 = <5>;
+		qcom,gpio-req-tbl-num = <0 1 2 3 4 5>;
+		qcom,gpio-req-tbl-flags = <1 0 0 0 0 0>;
 		qcom,gpio-req-tbl-label = "CAMIF_MCLK1",
 			"CAM_VDIG1",
 			"CAM_RESET1",
-			"CAM_STANDBY1";
+			"CAM_STANDBY1",
+			"CAM_MIPI_SEL_POW",
+			"CAM_MIPI_SEL";
 		qcom,sensor-position = <0x100>;
 		qcom,sensor-mode = <0>;
 		qcom,cci-master = <1>;
@@ -243,16 +249,22 @@
 		gpios = <&tlmm 28 0>,
 			<&tlmm 25 0>,
 			<&tlmm 40 0>,
-			<&tlmm 39 0>;
+			<&tlmm 39 0>,
+			<&tlmm 33 0>,
+			<&tlmm 34 0>;
+		qcom,gpio-vdig = <1>;
 		qcom,gpio-reset = <2>;
 		qcom,gpio-standby = <3>;
-		qcom,gpio-vdig = <1>;
-		qcom,gpio-req-tbl-num = <0 1 2 3>;
-		qcom,gpio-req-tbl-flags = <1 0 0 0>;
+		qcom,gpio-custom1 = <4>;
+		qcom,gpio-custom2 = <5>;
+		qcom,gpio-req-tbl-num = <0 1 2 3 4 5>;
+		qcom,gpio-req-tbl-flags = <1 0 0 0 0 0>;
 		qcom,gpio-req-tbl-label = "CAM_MCLK2",
 			"CAMIF_VDIG2",
 			"CAM_RESET2",
-			"CAM_STANDBY2";
+			"CAM_STANDBY2",
+			"CAM_MIPI_SEL_POW",
+			"CAM_MIPI_SEL";
 		qcom,sensor-position = <1>;
 		qcom,sensor-mode = <0>;
 		qcom,cci-master = <0>;
