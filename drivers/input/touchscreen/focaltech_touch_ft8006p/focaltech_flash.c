@@ -1609,6 +1609,8 @@ int fts_fwupg_upgrade(struct fts_upgrade *upg)
     }
 
     upgrade_flag = fts_fwupg_need_upgrade(upg);
+	upgrade_flag = true;
+	FTS_INFO("Temporay force update due to previous binary used V320 FW");
     FTS_INFO("fw upgrade flag:%d", upgrade_flag);
     do {
         upgrade_count++;
