@@ -91,6 +91,22 @@ static int cts_resume(struct chipone_ts_data *cts_data)
     return 0;
 }
 
+static void cts_suspend_work(struct work_struct *work)
+{
+	struct chipone_ts_data *cts_data = container_of(work, struct chipone_ts_data,
+			suspend_work);
+
+	cts_suspend(cts_data);
+}
+
+static void cts_resume_work(struct work_struct *work)
+{
+	struct chipone_ts_data *cts_data = container_of(work, struct chipone_ts_data,
+			resume_work);
+
+	cts_resume(cts_data);
+}
+
 #ifdef CONFIG_CTS_PM_FB_NOTIFIER
 static int fb_notifier_callback(struct notifier_block *nb,
 				      unsigned long action, void *data)
@@ -108,13 +124,13 @@ static int fb_notifier_callback(struct notifier_block *nb,
         if (action == FB_EVENT_BLANK) {
             blank = *(int *)evdata->data;
             if (blank == FB_BLANK_UNBLANK) {
-                cts_resume(cts_data);
+                queue_work(cts_data->pm_workqueue, &cts_data->resume_work);
                 return NOTIFY_OK;
             }
         } else if (action == FB_EARLY_EVENT_BLANK) {
             blank = *(int *)evdata->data;
             if (blank == FB_BLANK_POWERDOWN) {
-                cts_suspend(cts_data);
+                queue_work(cts_data->pm_workqueue, &cts_data->suspend_work);
                 return NOTIFY_OK;
             }
         }
@@ -192,6 +208,16 @@ static int cts_i2c_driver_probe(struct i2c_client *client,
         ret = -ENOMEM;
         goto err_deinit_platform_data;
     }
+
+    cts_data->pm_workqueue = create_singlethread_workqueue(CFG_CTS_DEVICE_NAME "-pm_workqueue");
+    if (cts_data->pm_workqueue == NULL) {
+        cts_err("Create PM workqueue failed");
+        ret = -ENOMEM;
+        goto pm_workqueue_failed;
+    }
+
+    INIT_WORK(&cts_data->resume_work, cts_resume_work);
+    INIT_WORK(&cts_data->suspend_work, cts_suspend_work);
 
 #ifdef CONFIG_CTS_ESD_PROTECTION
     cts_data->esd_workqueue = create_singlethread_workqueue(CFG_CTS_DEVICE_NAME "-esd_workqueue");
@@ -311,8 +337,10 @@ err_destroy_esd_workqueue:
 #ifdef CONFIG_CTS_ESD_PROTECTION
     destroy_workqueue(cts_data->esd_workqueue);
 #endif
+destroy_workqueue(cts_data->pm_workqueue);
+pm_workqueue_failed:
 //err_destroy_workqueue:
- //   destroy_workqueue(cts_data->workqueue);
+destroy_workqueue(cts_data->workqueue);
 err_deinit_platform_data:
     cts_deinit_platform_data(cts_data->pdata);
 //err_free_pdata:
@@ -370,7 +398,14 @@ static int cts_i2c_driver_remove(struct i2c_client *client)
             destroy_workqueue(cts_data->workqueue);
         }
 
-        cts_deinit_platform_data(cts_data->pdata);
+        if (cts_data->pm_workqueue) {
+           destroy_workqueue(cts_data->pm_workqueue);
+       }
+
+       cancel_work(&cts_data->resume_work);
+       cancel_work(&cts_data->suspend_work);
+
+       cts_deinit_platform_data(cts_data->pdata);
 
         if (cts_data->pdata) {
             kfree(cts_data->pdata);

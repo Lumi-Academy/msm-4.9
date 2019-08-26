@@ -1530,7 +1530,7 @@ int mdss_dsi_on(struct mdss_panel_data *pdata)
 
 	pinfo = &pdata->panel_info;
 	mipi = &pdata->panel_info.mipi;
-
+	pr_info("Trungtq mdss_dsi_is_panel_on_interactive\n");
 	if (mdss_dsi_is_panel_on_interactive(pdata)) {
 		/*
 		 * all interrupts are disabled at LK
@@ -1544,16 +1544,17 @@ int mdss_dsi_on(struct mdss_panel_data *pdata)
 	}
 
 	ret = mdss_dsi_panel_power_ctrl(pdata, MDSS_PANEL_POWER_ON);
+	pr_info("Trungtq mdss_dsi_panel_power_ctrl\n");
 	if (ret) {
 		pr_err("%s:Panel power on failed. rc=%d\n", __func__, ret);
 		goto end;
 	}
-
+	pr_info("Trungtq mdss_panel_is_power_on\n");
 	if (mdss_panel_is_power_on(cur_power_state)) {
 		pr_debug("%s: dsi_on from panel low power state\n", __func__);
 		goto end;
 	}
-
+	pr_info("Trungtq mdss_dsi_set_clk_src\n");
 	ret = mdss_dsi_set_clk_src(ctrl_pdata);
 	if (ret) {
 		pr_err("%s: failed to set clk src. rc=%d\n", __func__, ret);
@@ -1565,6 +1566,7 @@ int mdss_dsi_on(struct mdss_panel_data *pdata)
 	 * Phy. Phy and ctrl setup need to be done before enabling the link
 	 * clocks.
 	 */
+	pr_info("Trungtq mdss_dsi_clk_ctrl\n");
 	mdss_dsi_clk_ctrl(ctrl_pdata, ctrl_pdata->dsi_clk_handle,
 			  MDSS_DSI_CORE_CLK, MDSS_DSI_CLK_ON);
 
@@ -1575,13 +1577,14 @@ int mdss_dsi_on(struct mdss_panel_data *pdata)
 	 * turned on. However, if cont splash is disabled, the first time DSI
 	 * is powered on, phy init needs to be done unconditionally.
 	 */
+	 pr_info("Trungtq ulps_suspend_enabled\n");
 	if (!pdata->panel_info.ulps_suspend_enabled || !ctrl_pdata->ulps) {
 		mdss_dsi_phy_sw_reset(ctrl_pdata);
 		mdss_dsi_phy_init(ctrl_pdata);
 		mdss_dsi_ctrl_setup(ctrl_pdata);
 	}
 	ctrl_pdata->ctrl_state |= CTRL_STATE_DSI_ACTIVE;
-
+ pr_info("Trungtq mdss_dsi_clk_ctrl\n");
 	/* DSI link clocks need to be on prior to ctrl sw reset */
 	mdss_dsi_clk_ctrl(ctrl_pdata, ctrl_pdata->dsi_clk_handle,
 			  MDSS_DSI_LINK_CLK, MDSS_DSI_CLK_ON);
@@ -1596,10 +1599,11 @@ int mdss_dsi_on(struct mdss_panel_data *pdata)
 			pr_debug("reset enable: pinctrl not enabled\n");
 		mdss_dsi_panel_reset(pdata, 1);
 	}
-
+	pr_info("Trungtq lp11_init\n");
+   	/* DSI link clocks need to be on prior to ctrl sw reset */
 	if (mipi->init_delay)
 		usleep_range(mipi->init_delay, mipi->init_delay + 10);
-
+	pr_info("Trungtq force_clk_lane_hs\n");
 	if (mipi->force_clk_lane_hs) {
 		u32 tmp;
 
@@ -1608,7 +1612,7 @@ int mdss_dsi_on(struct mdss_panel_data *pdata)
 		MIPI_OUTP((ctrl_pdata->ctrl_base) + 0xac, tmp);
 		wmb(); /* ensure write is finished before progressing */
 	}
-
+	pr_info("Trungtq MIPI_CMD_PANEL\n");
 	if (pdata->panel_info.type == MIPI_CMD_PANEL)
 		mdss_dsi_clk_ctrl(ctrl_pdata, ctrl_pdata->dsi_clk_handle,
 				  MDSS_DSI_ALL_CLKS, MDSS_DSI_CLK_OFF);

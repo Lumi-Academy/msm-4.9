@@ -1,5 +1,4 @@
 #define LOG_TAG         "Plat"
-
 #include "cts_config.h"
 #include "cts_platform.h"
 #include "cts_core.h"
@@ -311,6 +310,7 @@ int cts_init_platform_data(struct cts_platform_data *pdata,
     pdata->ts_input_dev = input_dev;
 
 #if !defined(CONFIG_GENERIC_HARDIRQS)
+    cts_info("Trungtq CONFIG_GENERIC_HARDIRQS");
     INIT_WORK(&pdata->ts_irq_work, cts_plat_touch_dev_irq_work);
 #endif /* CONFIG_GENERIC_HARDIRQS */
 
@@ -405,10 +405,12 @@ int cts_plat_request_irq(struct cts_platform_data *pdata)
     /* Note:
      * If IRQ request succeed, IRQ will be enbled !!!
      */
+    cts_info("Trungtq request_threaded_irq");
     ret = request_threaded_irq(pdata->irq,
             NULL, cts_plat_irq_handler, IRQF_TRIGGER_RISING | IRQF_ONESHOT,
             pdata->i2c_client->dev.driver->name, pdata);
 #else /* CONFIG_GENERIC_HARDIRQS */
+        cts_info("Trungtq request_irq, num: %d", pdata->irq);
     ret = request_irq(pdata->irq,
             cts_plat_irq_handler, IRQF_TRIGGER_RISING | IRQF_ONESHOT,
             pdata->i2c_client->dev.driver->name, pdata);
