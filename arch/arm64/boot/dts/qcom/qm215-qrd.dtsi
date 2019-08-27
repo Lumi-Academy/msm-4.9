@@ -294,7 +294,7 @@
 };
 &dsi_ft8006p_hlt_hd_video {
 	qcom,panel-supply-entries = <&dsi_panel_pwr_supply>;
-//	qcom,esd-check-enabled;
+	qcom,esd-check-enabled;
 	qcom,cont-splash-enabled;
 };
 

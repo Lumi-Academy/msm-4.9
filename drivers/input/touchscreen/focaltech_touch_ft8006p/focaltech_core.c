@@ -1540,6 +1540,8 @@ static int fts_ts_suspend(struct device *dev)
         return 0;
     }
 
+    fts_release_all_finger();
+
     if (ts_data->fw_loading) {
         FTS_INFO("fw upgrade in process, can't suspend");
         return 0;
@@ -1595,6 +1597,10 @@ static int fts_ts_resume(struct device *dev)
         fts_power_source_resume(ts_data);
 #endif
         fts_reset_proc(200);
+    }
+    else
+    {
+         fts_reset_proc(50);
     }
 
     fts_tp_state_recovery(ts_data);

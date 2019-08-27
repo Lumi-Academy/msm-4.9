@@ -44,7 +44,7 @@
 * Private constant and macro definitions using #define
 *****************************************************************************/
 #define ESDCHECK_WAIT_TIME              1000    /* ms */
-#define LCD_ESD_PATCH                   0
+#define LCD_ESD_PATCH                   1
 
 /*****************************************************************************
 * Private enumerations, structures and unions using typedef
@@ -243,7 +243,7 @@ static int esdcheck_algorithm(struct fts_ts_data *ts_data)
     ret = fts_read_reg(reg_addr, &reg_value);
     if ( ret < 0 ) {
         fts_esdcheck_data.nack_cnt++;
-    } else if ( (reg_value & 0x70) !=  FTS_REG_WORKMODE_WORK_VALUE) {
+    } else if ( (reg_value & 0x70) !=  FTS_REG_WORKMODE_FACTORY_VALUE) {
         FTS_DEBUG("[ESD]: not in work mode, no check esd, return immediately!!");
         return 0;
     }

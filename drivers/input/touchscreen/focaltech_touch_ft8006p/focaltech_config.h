@@ -147,7 +147,7 @@
  * ESD check & protection
  * default: disable
  */
-#define FTS_ESDCHECK_EN                         0
+#define FTS_ESDCHECK_EN                         1
 
 
 /*
