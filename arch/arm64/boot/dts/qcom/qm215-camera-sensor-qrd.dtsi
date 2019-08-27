@@ -16,9 +16,9 @@
 		cell-index = <0>;
 		compatible = "qcom,qm215-gpio-flash";
 		qcom,flash-type = <2>;
-		gpios = <&tlmm 34 0>,
-			<&tlmm 33 0>,
-			<&tlmm 22 0>;
+		gpios = <&tlmm 45 0>,
+			<&tlmm 44 0>,
+			<&tlmm 46 0>;
 		qcom,gpio-req-tbl-num = <0 1 2>;
 		qcom,gpio-req-tbl-flags = <0 0 0>;
 		qcom,gpio-flash-en = <0>;
