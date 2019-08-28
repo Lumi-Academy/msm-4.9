@@ -616,8 +616,12 @@ static void handle_error(void)
 {
 	int mode = verity_mode();
 	if (mode == DM_VERITY_MODE_RESTART) {
-		DMERR("triggering restart");
+		DMERR("triggering restart: dm-verity device corrupted");
+#ifdef CONFIG_QCOM_DLOAD_MODE
+		BUG_ON("dm-verity device corrupted");
+#else
 		kernel_restart("dm-verity device corrupted");
+#endif
 	} else {
 		DMERR("Mounting verity root failed");
 	}
