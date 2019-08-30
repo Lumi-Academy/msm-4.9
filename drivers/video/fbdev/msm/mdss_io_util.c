@@ -302,8 +302,8 @@ int msm_mdss_enable_vreg(struct mdss_vreg *in_vreg, int num_vreg, int enable)
 					in_vreg[i].vreg_name);
 				goto disable_vreg;
 			}
-			msleep(10);
 		}
+		msleep(10);
 
 	} else {
 			for (i = num_vreg-1; i >= 0; i--) {

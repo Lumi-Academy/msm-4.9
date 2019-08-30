@@ -69,10 +69,10 @@ enum cts_firmware_cmd {
     CTS_CMD_QUIT_GESTURE_MONITOR = 0x41,
     CTS_CMD_CHARGER_PLUG_IN = 0x55,
     CTS_CMD_CHARGER_PLUG_OUT = 0x66,
-    CTS_CMD_ENABLE_FW_LOG_REDIRECT = 0x86,    
+    CTS_CMD_ENABLE_FW_LOG_REDIRECT = 0x86,
     CTS_CMD_DISABLE_FW_LOG_REDIRECT = 0x87,
     CTS_CMD_FW_LOG_SHOW_FINISH = 0xE0,
-        
+
 };
 
 #pragma pack(1)
@@ -208,6 +208,9 @@ struct chipone_ts_data {
 
     struct workqueue_struct *workqueue;
 
+    struct workqueue_struct *pm_workqueue;
+    struct work_struct resume_work;
+    struct work_struct suspend_work;
 #ifdef CONFIG_CTS_ESD_PROTECTION
     struct workqueue_struct *esd_workqueue;
     struct delayed_work esd_work;
@@ -236,7 +239,7 @@ static inline u32 get_unaligned_be24(const void *p)
 static inline void put_unaligned_be24(u32 v, void *p)
 {
     u8 *puc = (u8 *)p;
-    
+
     puc[0] = (v >> 16) & 0xFF;
     puc[1] = (v >> 8 ) & 0xFF;
     puc[2] = (v >> 0 ) & 0xFF;
@@ -516,10 +519,9 @@ extern int cts_stop_device(struct cts_device *cts_dev);
 
 #ifdef CFG_CTS_FW_LOG_REDIRECT
 extern int cts_enable_fw_log_redirect(struct cts_device *cts_dev);
-extern int cts_disable_fw_log_redirect(struct cts_device *cts_dev); 
+extern int cts_disable_fw_log_redirect(struct cts_device *cts_dev);
 extern bool cts_is_fw_log_redirect(struct cts_device *cts_dev);
 extern int cts_fw_log_show_finish(struct cts_device *cts_dev);
 #endif
 
 #endif /* CTS_CORE_H */
-

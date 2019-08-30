@@ -1,6 +1,5 @@
 #ifndef CTS_PLATFORM_H
 #define CTS_PLATFORM_H
-
 #include <linux/types.h>
 #include <asm/byteorder.h>
 #include <linux/bitops.h>
