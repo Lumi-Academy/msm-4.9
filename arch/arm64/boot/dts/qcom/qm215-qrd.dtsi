@@ -25,6 +25,7 @@
 	qcom,chgr-led-support;
 	qcom,vddmax-mv = <4400>;
 	qcom,vddsafe-mv = <4400>;
+      /* qcom,use-external-charger;*/
 };
 
 &pm8916_bms{
@@ -100,16 +101,6 @@
     };
     i2c@78b6000 {
         status = "ok";
-        fan54015_chg: fan54015_chg@6a {
-			compatible = "fairchild, fan54015_chg";
-			reg = <0x6a>;
-			interrupt-parent = <&tlmm>;
-			interrupts = <13 8>;
-			pinctrl-names = "default";
-			qcom,disable-gpio = <&tlmm 12 0x0>;
-			regulator-name = "fan54015_chg";
-			status = "ok";
-		};
 	};
 };
 

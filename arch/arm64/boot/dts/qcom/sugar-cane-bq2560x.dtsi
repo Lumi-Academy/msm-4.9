@@ -1,0 +1,94 @@
+/*
+ * BQ2560x battery charging dtsi
+ *
+ * Copyright (C) 2013 Texas Instruments
+ *
+ * This package is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation.
+
+ * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
+ * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
+ * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+ */
+
+&soc {
+	tlmm: pinctrl@1000000 {
+		bq_int_default: bq_int_default{
+			mux {
+				pins = "gpio13";
+				function ="gpio";
+			};
+			config {
+				pins = "gpio13";
+				drive-strength = <2>; /* 2 MA */
+				bias-pull-up; /* PULL UP*/
+			};
+		};
+
+	};
+};
+
+&i2c_2{
+	bq2560x_otg_supply: bq2560x@6B {
+		compatible = "ti,bq25601-charger";
+		reg = <0x6B>;
+		interrupt-parent = <&tlmm>;
+		interrupts = <13 2>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&bq_int_default>;
+		regulator-name = "bq2560x_otg_vreg";
+		ti,bq2560x,chip-enable-gpio = <12>;
+		ti,bq2560x,usb-vlim = <4400>;
+		ti,bq2560x,usb-ilim = <500>;
+		ti,bq2560x,usb-vreg = <4400>;
+		ti,bq2560x,usb-ichg = <500>;
+
+		ti,bq2560x,ta-vlim = <4500>;
+		ti,bq2560x,ta-ilim = <2500>;
+		ti,bq2560x,ta-vreg = <4400>;
+		ti,bq2560x,ta-ichg = <1700>;
+
+		ti,bq2560x,precharge-current = <256>;
+		ti,bq2560x,termination-current = <180>;
+		ti,bq2560x,boost-voltage = <5150>;
+		ti,bq2560x,boost-current = <1200>;
+		ti,bq2560x,enable_term;
+		ti,bq2560x,stat-pin-ctrl = <3>;
+		ti,bq2560x,vac-ovp-threshold = <6500>;
+
+		ti,bq2560x,jeita-hot-degc = <550>;
+		ti,bq2560x,jeita-warm-degc = <450>;
+		ti,bq2560x,jeita-cool-degc = <150>;
+		ti,bq2560x,jeita-cold-degc = <0>;
+
+		ti,bq2560x,jeita-hot-hysteresis = <49>;
+		ti,bq2560x,jeita-cold-hysteresis = <19>;
+
+		ti,bq2560x,jeita-cool-ma = <700>;
+		ti,bq2560x,jeita-cool-mv = <4400>;
+		ti,bq2560x,jeita-warm-ma = <1500>;
+		ti,bq2560x,jeita-warm-mv = <4350>;
+
+		ti,bq2560x,software-jeita-supported;
+
+		qcom,thermal-mitigation = <1700 1520 1220 920 620 0>;
+	};
+};
+
+&i2c_2 {
+	pericom-type-c@1d {
+		status="disabled";
+	};
+	adv7533@39 {
+		status="disabled";
+	};
+};
+
+&usb_otg{
+	vbus_otg-supply = <&bq2560x_otg_supply>;
+	qcom,hsusb-otg-phy-init-seq =
+		<0x39 0x81 0x37 0x82 0xffffffff>;
+	qcom,hsusb-otg-phy-init-seq-host =
+		<0x74 0x80 0x2b 0x81 0x3f 0x82 0x13 0x83 0xffffffff>;
+};

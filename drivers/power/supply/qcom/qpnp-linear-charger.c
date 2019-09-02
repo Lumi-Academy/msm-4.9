@@ -11,7 +11,6 @@
  *
  */
 #define pr_fmt(fmt)	"CHG: %s: " fmt, __func__
-
 #include <linux/module.h>
 #include <linux/slab.h>
 #include <linux/err.h>
@@ -28,7 +27,6 @@
 #include <linux/debugfs.h>
 #include <linux/regmap.h>
 #include <linux/spmi.h>
-#include "../fan54015.h"
 #define CREATE_MASK(NUM_BITS, POS) \
 	((unsigned char) (((1 << (NUM_BITS)) - 1) << (POS)))
 #define LBC_MASK(MSB_BIT, LSB_BIT) \
@@ -383,6 +381,7 @@ struct qpnp_lbc_chip {
 	int				cfg_warm_bat_decidegc;
 	int				cfg_cool_bat_decidegc;
 	int				fake_battery_soc;
+	int				fake_temp;
 	int				cfg_soc_resume_limit;
 	int				cfg_float_charge;
 	int				charger_disabled;
@@ -410,6 +409,7 @@ struct qpnp_lbc_chip {
 	struct power_supply_desc	usb_psy_d;
 	struct power_supply		*bms_psy;
 	struct power_supply		*batt_psy;
+	struct power_supply		*bq25601_psy;
 	struct power_supply_desc	batt_psy_d;
 	struct qpnp_adc_tm_btm_param	adc_param;
 	struct qpnp_vadc_chip		*vadc_dev;
@@ -425,7 +425,6 @@ struct qpnp_lbc_chip {
 	struct extcon_dev		*extcon;
 };
 
-static void set_fan45015_current(struct qpnp_lbc_chip *chip);
 static void qpnp_lbc_enable_irq(struct qpnp_lbc_chip *chip,
 					struct qpnp_lbc_irq *irq)
 {
@@ -673,6 +672,13 @@ static int qpnp_lbc_is_chg_gone(struct qpnp_lbc_chip *chip)
 	return (rt_sts & CHG_GONE_BIT) ? 1 : 0;
 }
 //extern int in_otg;//zhangbing@uniscope_drv 20170417 add revise displaying charging when plug the otg cable the first time poweron   
+#define QPNP_LBC_IBATMAX_MIN	90
+#define QPNP_LBC_IBATMAX_MAX	1440
+static int qpnp_lbc_ibatmax_set(struct qpnp_lbc_chip *chip, int chg_current);
+#if 0
+static int set_bq25601_property(struct qpnp_lbc_chip *chip,
+                                enum power_supply_property psy_prop, int value);
+#endif
 
 static int qpnp_lbc_charger_enable(struct qpnp_lbc_chip *chip, int reason,
 					int enable)
@@ -680,10 +686,6 @@ static int qpnp_lbc_charger_enable(struct qpnp_lbc_chip *chip, int reason,
 	int disabled = chip->charger_disabled;
 	u8 reg_val;
 	int rc = 0;
-//	if(in_otg)//zhangbing@uniscope_drv 20170417 add revise displaying charging when plug the otg cable the first time poweron 
-//	{
-//		disabled = 4;   
-//	}
 
 	pr_debug("reason=%d requested_enable=%d disabled_status=%d\n",
 					reason, enable, disabled);
@@ -694,7 +696,7 @@ static int qpnp_lbc_charger_enable(struct qpnp_lbc_chip *chip, int reason,
 
 	if (!!chip->charger_disabled == !!disabled)
 		goto skip;
-
+	pr_info("CHG_EN  %s\n", !!disabled ? "FBO-chg_disable":"chg_enable");
 	reg_val = !!disabled ? CHG_FORCE_BATT_ON : CHG_ENABLE;
 	rc = qpnp_lbc_masked_write(chip, chip->chgr_base + CHG_CTRL_REG,
 				CHG_EN_MASK, reg_val);
@@ -1031,8 +1033,6 @@ static int qpnp_lbc_ibatsafe_set(struct qpnp_lbc_chip *chip, int safe_current)
 	return rc;
 }
 
-#define QPNP_LBC_IBATMAX_MIN	90
-#define QPNP_LBC_IBATMAX_MAX	650//1440
 /*
  * Set maximum current limit from charger
  * ibat =  System current + charging current
@@ -1180,8 +1180,44 @@ static int is_vinmin_set(struct qpnp_lbc_chip *chip)
 	return !!(reg & VINMIN_LOOP_BIT);
 
 }
+#if 1
+static int set_bq25601_property(struct qpnp_lbc_chip *chip,
+				enum power_supply_property psy_prop, int value)
+{
+	union power_supply_propval val = {0,};
+	val.intval = value;
+	if (!chip->bq25601_psy)
+		chip->bq25601_psy = power_supply_get_by_name("bq25601");
 
-/*
+	if (chip->bq25601_psy)  {
+		power_supply_set_property(chip->bq25601_psy, psy_prop, &val);
+		return 0;
+	}
+	pr_debug("No BQ25601 supply registered\n");
+
+	return -EINVAL;
+}
+#endif
+#if 0
+static int get_bq25601_property(struct qpnp_lbc_chip *chip,
+				enum power_supply_property psy_prop)
+{
+	union power_supply_propval ret = {0,};
+
+	if (!chip->bq25601_psy)
+		chip->bq25601_psy = power_supply_get_by_name("bq25601");
+
+	if (chip->bms_psy)  {
+		power_supply_get_property(chip->bq25601_psy, psy_prop, &ret);
+		return ret.intval;
+	}
+	pr_debug("No BQ25601 supply registered\n");
+
+	return -EINVAL;
+}
+#endif
+
+#if 0
 static int is_battery_charging(struct qpnp_lbc_chip *chip)
 {
 	u8 reg;
@@ -1196,7 +1232,7 @@ static int is_battery_charging(struct qpnp_lbc_chip *chip)
 
 	return !!(reg & CHG_ON_BIT);
 }
-*/
+#endif
 
 static int qpnp_lbc_vbatdet_override(struct qpnp_lbc_chip *chip, int ovr_val)
 {
@@ -1325,7 +1361,6 @@ static int get_prop_batt_status(struct qpnp_lbc_chip *chip)
         else
         {
             old_status = new_status;
-            set_fan45015_current(chip);
             return POWER_SUPPLY_STATUS_CHARGING;
         }
 
@@ -1421,7 +1456,8 @@ static int get_prop_batt_temp(struct qpnp_lbc_chip *chip)
 {
 	int rc = 0;
 	struct qpnp_vadc_result results;
-
+	if(chip->fake_temp != 0)
+        	return chip->fake_temp;
 	if (chip->cfg_use_fake_battery || !get_prop_batt_present(chip))
 		return DEFAULT_TEMP;
 
@@ -1439,7 +1475,6 @@ static int get_prop_batt_temp(struct qpnp_lbc_chip *chip)
 static void qpnp_lbc_set_appropriate_current(struct qpnp_lbc_chip *chip)
 {
 	unsigned int chg_current = chip->usb_psy_ma;
-
 	if (chip->bat_is_cool && chip->cfg_cool_bat_chg_ma)
 		chg_current = min(chg_current, chip->cfg_cool_bat_chg_ma);
 	if (chip->bat_is_warm && chip->cfg_warm_bat_chg_ma)
@@ -1447,32 +1482,15 @@ static void qpnp_lbc_set_appropriate_current(struct qpnp_lbc_chip *chip)
 	if (chip->therm_lvl_sel != 0 && chip->thermal_mitigation)
 		chg_current = min(chg_current,
 			chip->thermal_mitigation[chip->therm_lvl_sel]);
-
 	pr_debug("setting charger current %d mA\n", chg_current);
 	qpnp_lbc_ibatmax_set(chip, chg_current);
 }
-static void set_fan45015_current(struct qpnp_lbc_chip *chip)
-{
-    if(chip->usb_supply_type == POWER_SUPPLY_TYPE_USB)
-        fan54015_set_thermal_current(0);
-    else
-    {
-        if (chip->bat_is_cool && chip->cfg_cool_bat_chg_ma)
-            fan54015_set_thermal_current(0);
-        else if (chip->bat_is_warm && chip->cfg_warm_bat_chg_ma)
-            fan54015_set_thermal_current(0);
-        else
-            fan54015_set_thermal_current(1);
-    } 
-
-}
-
-
+#if 0
 static void qpnp_batt_external_power_changed(struct power_supply *psy)
 {
   struct qpnp_lbc_chip *chip = power_supply_get_drvdata(psy);														
 	union power_supply_propval ret = {0,};
-	int current_ma;
+	int current_ma = 0;
 	unsigned long flags;
 
 	spin_lock_irqsave(&chip->ibat_change_lock, flags);
@@ -1502,9 +1520,10 @@ static void qpnp_batt_external_power_changed(struct power_supply *psy)
 
 skip_current_config:
 	spin_unlock_irqrestore(&chip->ibat_change_lock, flags);
-	pr_err("zm++ power supply changed batt_psy\n");
+	pr_err("Pre %d Now %d\n",chip->prev_max_ma, current_ma );
 	power_supply_changed(chip->batt_psy);
 }
+#endif
 static int qpnp_lbc_system_temp_level_set(struct qpnp_lbc_chip *chip,
 								int lvl_sel)
 {
@@ -1749,6 +1768,10 @@ static int qpnp_batt_power_set_property(struct power_supply *psy,
 		chip->fake_battery_soc = val->intval;
 		pr_debug("power supply changed batt_psy\n");
 		break;
+	case POWER_SUPPLY_PROP_TEMP:
+		chip->fake_temp = val->intval;
+		pr_info("Faking temp %d\n", val->intval);
+		break;
 	case POWER_SUPPLY_PROP_CHARGING_ENABLED:
 		chip->cfg_charging_disabled = !(val->intval);
 		rc = qpnp_lbc_charger_enable(chip, USER,
@@ -1779,11 +1802,8 @@ static int qpnp_batt_power_get_property(struct power_supply *psy,
 				       union power_supply_propval *val)
 {
 	struct qpnp_lbc_chip *chip = power_supply_get_drvdata(psy);
-    int ext_charge_status=0;
 	switch (psp) {
 	case POWER_SUPPLY_PROP_STATUS:
-        ext_charge_status = fan54015_get_chg_status();
-        pr_debug("%s,%d,ext_charge_status = %d\n",__func__,__LINE__,ext_charge_status);
             val->intval = get_prop_batt_status(chip);
 		break;
 	case POWER_SUPPLY_PROP_CHARGE_TYPE:
@@ -1995,7 +2015,9 @@ static int qpnp_lbc_usb_set_property(struct power_supply *psy,
 		break;
 	case POWER_SUPPLY_PROP_TYPE:
 	case POWER_SUPPLY_PROP_REAL_TYPE:
+		pr_info("old usb is called,%d \n", val->intval);
 		chip->usb_supply_type = val->intval;
+		set_bq25601_property(chip, POWER_SUPPLY_PROP_CHARGE_TYPE, val->intval);
 		break;
 	default:
 		return -EINVAL;
@@ -2168,7 +2190,6 @@ static void qpnp_lbc_jeita_adc_notification(enum qpnp_tm_state state, void *ctx)
 		qpnp_lbc_set_appropriate_vddmax(chip);
 		qpnp_lbc_set_appropriate_current(chip);
 		spin_unlock_irqrestore(&chip->ibat_change_lock, flags);
-            set_fan45015_current(chip);
 	}
 
 	pr_debug("warm %d, cool %d, low = %d deciDegC, high = %d deciDegC\n",
@@ -2679,23 +2700,17 @@ static irqreturn_t qpnp_lbc_chg_gone_irq_handler(int irq, void *_chip)
 
 	return IRQ_HANDLED;
 }
-
+#if 1
 static irqreturn_t qpnp_lbc_usbin_valid_irq_handler(int irq, void *_chip)
 {
 	struct qpnp_lbc_chip *chip = _chip;
 	int usb_present;
 	unsigned long flags;
-    bool host_mode; 
 	usb_present = qpnp_lbc_is_usb_chg_plugged_in(chip);
-    host_mode = fan54015_get_opa_mode();
-    if(host_mode)
-        return IRQ_HANDLED;
-    pr_debug("usbin-valid triggered: %d\n", usb_present);
-    if(usb_present)
-    {
-        old_status = 0;
-        fan54015_enable_chg();
-    }
+    	if(usb_present)
+    	{
+       		old_status = 0;
+   	}
 	if (chip->usb_present ^ usb_present) {
 		chip->usb_present = usb_present;
 		if (!usb_present) {
@@ -2706,13 +2721,13 @@ static irqreturn_t qpnp_lbc_usbin_valid_irq_handler(int irq, void *_chip)
 			qpnp_lbc_set_appropriate_current(chip);
 			spin_unlock_irqrestore(&chip->ibat_change_lock,
 								flags);
-            set_fan45015_current(chip);
 			if (chip->cfg_collapsible_chgr_support)
 				chip->non_collapsible_chgr_detected = false;
 
 			if (chip->supported_feature_flag & VDD_TRIM_SUPPORTED)
 				alarm_try_to_cancel(&chip->vddtrim_alarm);
 		} else {
+#if 0
 			/*
 			 * Override VBAT_DET comparator to start charging
 			 * even if VBAT > VBAT_DET.
@@ -2736,9 +2751,9 @@ static irqreturn_t qpnp_lbc_usbin_valid_irq_handler(int irq, void *_chip)
 			 * irrespective of battery SOC above resume_soc.
 			 */
 			qpnp_lbc_charger_enable(chip, SOC, 1);
+#endif
 		}
 
-		pr_debug("Updating usb_psy PRESENT property\n");
 		if (chip->usb_present)
 			extcon_set_cable_state_(chip->extcon,
 						EXTCON_USB, true);
@@ -2750,7 +2765,8 @@ static irqreturn_t qpnp_lbc_usbin_valid_irq_handler(int irq, void *_chip)
 
 	return IRQ_HANDLED;
 }
-
+#endif
+#if 0
 static int qpnp_lbc_is_batt_temp_ok(struct qpnp_lbc_chip *chip)
 {
 	u8 reg_val;
@@ -2766,19 +2782,10 @@ static int qpnp_lbc_is_batt_temp_ok(struct qpnp_lbc_chip *chip)
 
 	return (reg_val & BAT_TEMP_OK_IRQ) ? 1 : 0;
 }
-
+#endif
 static irqreturn_t qpnp_lbc_batt_temp_irq_handler(int irq, void *_chip)
 {
 	struct qpnp_lbc_chip *chip = _chip;
-	int batt_temp_good;
-
-	batt_temp_good = qpnp_lbc_is_batt_temp_ok(chip);
-    if(batt_temp_good== 0)
-        fan54015_stop_charging(); 
-    if(batt_temp_good== 1)
-        fan54015_enable_chg();
-    pr_debug("batt-temp triggered: %d\n", batt_temp_good);
-
 	pr_debug("power supply changed batt_psy\n");
 	power_supply_changed(chip->batt_psy);
 	return IRQ_HANDLED;
@@ -3042,17 +3049,16 @@ static int qpnp_lbc_request_irqs(struct qpnp_lbc_chip *chip)
 
 	REQUEST_IRQ(chip, BATT_TEMPOK, rc, batt_temp, 0,
 			IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING, 1);
-
+#if 1
 	REQUEST_IRQ(chip, USBIN_VALID, rc, usbin_valid, 1,
 			IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING
 			| IRQF_ONESHOT, 1);
-
+#endif
 	REQUEST_IRQ(chip, USB_CHG_GONE, rc, chg_gone, 0,
 			IRQF_TRIGGER_RISING, 1);
 
 	REQUEST_IRQ(chip, USB_OVER_TEMP, rc, usb_overtemp, 0,
 			IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING, 0);
-
 	return 0;
 }
 
@@ -3548,9 +3554,10 @@ static int qpnp_lbc_main_probe(struct platform_device *pdev)
 		chip->batt_psy_d.set_property = qpnp_batt_power_set_property;
 		chip->batt_psy_d.property_is_writeable =
 			qpnp_batt_property_is_writeable;
+#if 0
 chip->batt_psy_d.external_power_changed =
 			qpnp_batt_external_power_changed;
-
+#endif
 		batt_psy_cfg.drv_data = chip;
 		batt_psy_cfg.supplied_to = pm_batt_supplied_to;
 		batt_psy_cfg.num_supplicants =

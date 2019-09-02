@@ -51,7 +51,6 @@
 #include <linux/qpnp/qpnp-adc.h>
 
 #include <linux/msm-bus.h>
-#include "../../power/supply/fan54015.h"
 /**
  * Requested USB votes for BUS bandwidth
  *
