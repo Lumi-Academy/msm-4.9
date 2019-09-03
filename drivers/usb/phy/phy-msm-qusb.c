@@ -67,7 +67,7 @@
 #define CLK_REF_SEL			BIT(7)
 
 #define QUSB2PHY_PORT_TUNE1             0x80
-#define QUSB2PHY_PORT_TUNE2             0x84
+#define QUSB2PHY_PORT_TUNE2             0x47
 #define QUSB2PHY_PORT_TUNE3             0x88
 #define QUSB2PHY_PORT_TUNE4             0x8C
 #define QUSB2PHY_PORT_TUNE5             0x90
