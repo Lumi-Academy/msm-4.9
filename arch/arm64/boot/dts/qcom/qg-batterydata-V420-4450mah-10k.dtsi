@@ -9,7 +9,7 @@ qcom,4082433_Linkchip_Q183_JLQ_4450mAH_PMI632 {
     qcom,battery-type = "4082433_Linkchip_Q183_JLQ_4450mAH_PMI632_averaged_MasterSlave_Jul1th2019";
     qcom,qg-batt-profile-ver = <100>;
     /* COOL = 5 DegC, WARM = 45 DegC */
-    qcom,jeita-soft-thresholds = <0x3077 0x753>;
+    qcom,jeita-soft-thresholds = <0x3077 0xFD5>;
     /* COLD = 0 DegC, HOT = 50 DegC */
     qcom,jeita-hard-thresholds = <0x36AB 0xDBA>;
 	qcom,fcc1-temp-lut {
