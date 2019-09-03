@@ -215,7 +215,7 @@
  * define your own fw_file, the sample one to be replaced is invalid
  * NOTE: if FTS_GET_MODULE_NUM > 1, it's the fw corresponding with FTS_VENDOR_ID
  */
-#define FTS_UPGRADE_FW_FILE                      "include/firmware/QM215_V330_FT8006P_V0x09_L0x01_20190727_all.i"
+#define FTS_UPGRADE_FW_FILE                      "include/firmware/FT8006P_HLT_MANTIX6.088__V330_HTF061H027_V0x0b_L0x02_20190902_all.i"
 
 /*
  * if FTS_GET_MODULE_NUM >= 2, fw corrsponding with FTS_VENDOR_ID2
