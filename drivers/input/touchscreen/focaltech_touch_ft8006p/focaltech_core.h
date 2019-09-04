@@ -143,6 +143,7 @@ struct fts_ts_data {
     struct i2c_client *client;
     struct spi_device *spi;
     struct device *dev;
+	struct device *sysfs_dev;
     struct input_dev *input_dev;
     struct fts_ts_platform_data *pdata;
     struct ts_ic_info ic_info;
@@ -193,6 +194,9 @@ struct fts_ts_data {
 * Global variable or extern global variabls/functions
 *****************************************************************************/
 extern struct fts_ts_data *fts_data;
+
+extern int vsm_gesture_sysfs_init(struct fts_ts_data *ts_data);
+extern void vsm_gesture_sysfs_remove(struct fts_ts_data *ts_data);
 
 /* communication interface */
 int fts_read(u8 *cmd, u32 cmdlen, u8 *data, u32 datalen);

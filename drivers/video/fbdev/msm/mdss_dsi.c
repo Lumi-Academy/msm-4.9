@@ -42,6 +42,8 @@
 /* Master structure to hold all the information about the DSI/panel */
 static struct mdss_dsi_data *mdss_dsi_res;
 
+extern int tsp_gesture_status;
+
 #define DSI_DISABLE_PC_LATENCY 100
 #define DSI_ENABLE_PC_LATENCY PM_QOS_DEFAULT_VALUE
 
@@ -377,13 +379,32 @@ static int mdss_dsi_panel_power_off(struct mdss_panel_data *pdata)
 	ctrl_pdata = container_of(pdata, struct mdss_dsi_ctrl_pdata,
 				panel_data);
 
+	if ((tsp_gesture_status == 0) && gpio_is_valid(ctrl_pdata->vdd_en_gpio)) {
+		ret = gpio_direction_output(
+				ctrl_pdata->vdd_en_gpio, 0);
+		if (ret)
+			pr_err("%s: unable to set dir for vdd en gpio\n",
+					__func__);
+		pr_debug("%s: vdd en gpio output off\n", __func__);
+	}
+
+	if ((tsp_gesture_status == 0) && gpio_is_valid(ctrl_pdata->vee_en_gpio)) {
+		ret = gpio_direction_output(
+				ctrl_pdata->vee_en_gpio, 0);
+		usleep_range(5000, 6000); /* datasheet */
+		if (ret)
+			pr_err("%s: unable to set dir for vee en gpio\n",
+					__func__);
+		pr_debug("%s: vee en gpio output off \n", __func__);
+	}
+
 	ret = mdss_dsi_panel_reset(pdata, 0);
 	if (ret) {
 		pr_warn("%s: Panel reset failed. rc=%d\n", __func__, ret);
 		ret = 0;
 	}
 
-	if (gpio_is_valid(ctrl_pdata->vdd_ext_gpio)) {
+	if ((tsp_gesture_status == 0) && gpio_is_valid(ctrl_pdata->vdd_ext_gpio)) {
 		ret = gpio_direction_output(
 			ctrl_pdata->vdd_ext_gpio, 0);
 		if (ret)
@@ -425,6 +446,25 @@ static int mdss_dsi_panel_power_on(struct mdss_panel_data *pdata)
 		if (ret)
 			pr_err("%s: unable to set dir for vdd gpio\n",
 					__func__);
+		pr_debug("%s: vdd gpio output on\n",	__func__);
+	}
+	if (gpio_is_valid(ctrl_pdata->vdd_en_gpio)) {
+		ret = gpio_direction_output(
+				ctrl_pdata->vdd_en_gpio, 1);
+		if (ret)
+			pr_err("%s: unable to set dir for vdd en gpio\n",
+					__func__);
+		pr_debug("%s: vdd en gpio output on\n", __func__);
+	}
+
+	if (gpio_is_valid(ctrl_pdata->vee_en_gpio)) {
+		ret = gpio_direction_output(
+				ctrl_pdata->vee_en_gpio, 1);
+		usleep_range(5000, 6000); /* datasheet */
+		if (ret)
+			pr_err("%s: unable to set dir for vee en gpio\n",
+					__func__);
+		pr_debug("%s: vee en gpio output on\n", __func__);
 	}
 
 	ret = msm_mdss_enable_vreg(
@@ -4213,6 +4253,21 @@ static int mdss_dsi_parse_gpio_params(struct platform_device *ctrl_pdev,
 		"qcom,ext-vdd-gpio", 0);
 	if (!gpio_is_valid(ctrl_pdata->vdd_ext_gpio))
 		pr_info("%s: ext vdd gpio not specified\n", __func__);
+
+	ctrl_pdata->vdd_en_gpio = of_get_named_gpio(ctrl_pdev->dev.of_node,
+		"vsm,vdd-en-gpio", 0);
+	if (!gpio_is_valid(ctrl_pdata->vdd_en_gpio))
+		pr_info("%s: ext lcm vdd gpio not specified\n", __func__);
+
+	ctrl_pdata->vee_en_gpio = of_get_named_gpio(ctrl_pdev->dev.of_node,
+		"vsm,vee-en-gpio", 0);
+	if (!gpio_is_valid(ctrl_pdata->vee_en_gpio))
+		pr_info("%s: ext lcm vee gpio not specified\n", __func__);
+
+	ctrl_pdata->tp_rst_gpio = of_get_named_gpio(ctrl_pdev->dev.of_node,
+		"vsm,tp-rst-gpio", 0);
+	if (!gpio_is_valid(ctrl_pdata->tp_rst_gpio))
+		pr_info("%s: tp rst gpio not specified\n", __func__);
 
 	ctrl_pdata->rst_gpio = of_get_named_gpio(ctrl_pdev->dev.of_node,
 			 "qcom,platform-reset-gpio", 0);

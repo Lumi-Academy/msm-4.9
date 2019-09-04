@@ -30,6 +30,8 @@
 #endif
 #include "mdss_debug.h"
 
+extern int tsp_gesture_status;
+
 #define DT_CMD_HDR 6
 #define DEFAULT_MDP_TRANSFER_TIME 14000
 
@@ -335,6 +337,24 @@ static int mdss_dsi_request_gpios(struct mdss_dsi_ctrl_pdata *ctrl_pdata)
 			goto vdd_en_gpio_err;
 		}
 	}
+	if (gpio_is_valid(ctrl_pdata->vdd_en_gpio)) {
+		rc = gpio_request(ctrl_pdata->vdd_en_gpio,
+						"vdd_en_enable");
+		if (rc) {
+			pr_err("request lcm vdd enable gpio failed, rc=%d\n",
+				rc);
+			goto lcm_vdd_en_gpio_err;
+		}
+	}
+	if (gpio_is_valid(ctrl_pdata->vee_en_gpio)) {
+		rc = gpio_request(ctrl_pdata->vee_en_gpio,
+						"vee_en_enable");
+		if (rc) {
+			pr_err("request lcm vee enable gpio failed, rc=%d\n",
+				rc);
+			goto lcm_vee_en_gpio_err;
+		}
+	}
 	if (gpio_is_valid(ctrl_pdata->mode_gpio)) {
 		rc = gpio_request(ctrl_pdata->mode_gpio, "panel_mode");
 		if (rc) {
@@ -346,6 +366,12 @@ static int mdss_dsi_request_gpios(struct mdss_dsi_ctrl_pdata *ctrl_pdata)
 	return rc;
 
 mode_gpio_err:
+	if (gpio_is_valid(ctrl_pdata->vee_en_gpio))
+		gpio_free(ctrl_pdata->vee_en_gpio);
+lcm_vee_en_gpio_err:
+	if (gpio_is_valid(ctrl_pdata->vdd_en_gpio))
+		gpio_free(ctrl_pdata->vdd_en_gpio);
+lcm_vdd_en_gpio_err:
 	if (gpio_is_valid(ctrl_pdata->vdd_ext_gpio))
 		gpio_free(ctrl_pdata->vdd_ext_gpio);
 vdd_en_gpio_err:
@@ -516,10 +542,31 @@ int mdss_dsi_panel_reset(struct mdss_panel_data *pdata, int enable)
 			usleep_range(100, 110);
 			gpio_free(ctrl_pdata->disp_en_gpio);
 		}
-		gpio_set_value((ctrl_pdata->rst_gpio), 0);
+
+		if (gpio_is_valid(ctrl_pdata->tp_rst_gpio)) {
+			rc = gpio_request(ctrl_pdata->tp_rst_gpio, "tp_rst_gpio");
+			if (rc) {
+				pr_err("request tp rst gpio failed, rc=%d\n", rc);
+			} else {
+				if (tsp_gesture_status == 0) {
+					gpio_set_value(ctrl_pdata->tp_rst_gpio, 0);
+					usleep_range(100, 110);
+				}
+				gpio_free(ctrl_pdata->tp_rst_gpio);
+			}
+		}
+
+		if (tsp_gesture_status == 0)
+			gpio_set_value((ctrl_pdata->rst_gpio), 0);
 		gpio_free(ctrl_pdata->rst_gpio);
 		if (gpio_is_valid(ctrl_pdata->mode_gpio))
 			gpio_free(ctrl_pdata->mode_gpio);
+		if (gpio_is_valid(ctrl_pdata->vdd_ext_gpio))
+			gpio_free(ctrl_pdata->vdd_ext_gpio);
+		if (gpio_is_valid(ctrl_pdata->vdd_en_gpio))
+			gpio_free(ctrl_pdata->vdd_en_gpio);
+		if (gpio_is_valid(ctrl_pdata->vee_en_gpio))
+			gpio_free(ctrl_pdata->vee_en_gpio);
 	}
 
 exit:

@@ -97,6 +97,8 @@ static struct fts_gesture_st fts_gesture_data;
 /*****************************************************************************
 * Global variable or extern global variabls/functions
 *****************************************************************************/
+struct class *vsm_class;
+int tsp_gesture_status = 0;
 
 /*****************************************************************************
 * Static function prototypes
@@ -214,47 +216,8 @@ static void fts_gesture_report(struct input_dev *input_dev, int gesture_id)
 
     FTS_DEBUG("gesture_id:0x%x", gesture_id);
     switch (gesture_id) {
-    case GESTURE_LEFT:
-        gesture = KEY_GESTURE_LEFT;
-        break;
-    case GESTURE_RIGHT:
-        gesture = KEY_GESTURE_RIGHT;
-        break;
-    case GESTURE_UP:
-        gesture = KEY_GESTURE_UP;
-        break;
-    case GESTURE_DOWN:
-        gesture = KEY_GESTURE_DOWN;
-        break;
     case GESTURE_DOUBLECLICK:
-        gesture = KEY_GESTURE_U;
-        break;
-    case GESTURE_O:
-        gesture = KEY_GESTURE_O;
-        break;
-    case GESTURE_W:
-        gesture = KEY_GESTURE_W;
-        break;
-    case GESTURE_M:
-        gesture = KEY_GESTURE_M;
-        break;
-    case GESTURE_E:
-        gesture = KEY_GESTURE_E;
-        break;
-    case GESTURE_L:
-        gesture = KEY_GESTURE_L;
-        break;
-    case GESTURE_S:
-        gesture = KEY_GESTURE_S;
-        break;
-    case GESTURE_V:
-        gesture = KEY_GESTURE_V;
-        break;
-    case GESTURE_Z:
-        gesture = KEY_GESTURE_Z;
-        break;
-    case  GESTURE_C:
-        gesture = KEY_GESTURE_C;
+        gesture = KEY_WAKEUP;
         break;
     default:
         gesture = -1;
@@ -436,41 +399,12 @@ int fts_gesture_init(struct fts_ts_data *ts_data)
     struct input_dev *input_dev = ts_data->input_dev;
 
     FTS_FUNC_ENTER();
-    input_set_capability(input_dev, EV_KEY, KEY_POWER);
-    input_set_capability(input_dev, EV_KEY, KEY_GESTURE_U);
-    input_set_capability(input_dev, EV_KEY, KEY_GESTURE_UP);
-    input_set_capability(input_dev, EV_KEY, KEY_GESTURE_DOWN);
-    input_set_capability(input_dev, EV_KEY, KEY_GESTURE_LEFT);
-    input_set_capability(input_dev, EV_KEY, KEY_GESTURE_RIGHT);
-    input_set_capability(input_dev, EV_KEY, KEY_GESTURE_O);
-    input_set_capability(input_dev, EV_KEY, KEY_GESTURE_E);
-    input_set_capability(input_dev, EV_KEY, KEY_GESTURE_M);
-    input_set_capability(input_dev, EV_KEY, KEY_GESTURE_L);
-    input_set_capability(input_dev, EV_KEY, KEY_GESTURE_W);
-    input_set_capability(input_dev, EV_KEY, KEY_GESTURE_S);
-    input_set_capability(input_dev, EV_KEY, KEY_GESTURE_V);
-    input_set_capability(input_dev, EV_KEY, KEY_GESTURE_Z);
-    input_set_capability(input_dev, EV_KEY, KEY_GESTURE_C);
-
-    __set_bit(KEY_GESTURE_RIGHT, input_dev->keybit);
-    __set_bit(KEY_GESTURE_LEFT, input_dev->keybit);
-    __set_bit(KEY_GESTURE_UP, input_dev->keybit);
-    __set_bit(KEY_GESTURE_DOWN, input_dev->keybit);
-    __set_bit(KEY_GESTURE_U, input_dev->keybit);
-    __set_bit(KEY_GESTURE_O, input_dev->keybit);
-    __set_bit(KEY_GESTURE_E, input_dev->keybit);
-    __set_bit(KEY_GESTURE_M, input_dev->keybit);
-    __set_bit(KEY_GESTURE_W, input_dev->keybit);
-    __set_bit(KEY_GESTURE_L, input_dev->keybit);
-    __set_bit(KEY_GESTURE_S, input_dev->keybit);
-    __set_bit(KEY_GESTURE_V, input_dev->keybit);
-    __set_bit(KEY_GESTURE_C, input_dev->keybit);
-    __set_bit(KEY_GESTURE_Z, input_dev->keybit);
+    input_set_capability(input_dev, EV_KEY, KEY_WAKEUP);
 
     fts_create_gesture_sysfs(ts_data->dev);
 
     memset(&fts_gesture_data, 0, sizeof(struct fts_gesture_st));
-    fts_gesture_data.mode = ENABLE;
+    fts_gesture_data.mode = DISABLE;
     fts_gesture_data.active = DISABLE;
 
     FTS_FUNC_EXIT();
@@ -484,4 +418,87 @@ int fts_gesture_exit(struct fts_ts_data *ts_data)
     FTS_FUNC_EXIT();
     return 0;
 }
+
+static ssize_t doubletap_enable_store(struct device *dev,
+        struct device_attribute *devattr, const char *buf, size_t count)
+{
+    //struct fts_ts_data *ts_data = dev_get_drvdata(dev);
+    int enable = 0;
+    int ret;
+
+    ret = kstrtoint(buf, 10, &enable);
+    if (ret != 0)
+        return ret;
+
+    if (enable) {
+        fts_gesture_data.mode = ENABLE;
+		tsp_gesture_status = 1;
+	} else {
+        fts_gesture_data.mode = DISABLE;
+		tsp_gesture_status = 0;
+	}
+
+    FTS_INFO("update wakeup events: %s:%d", __func__, enable);
+
+    return count;
+}
+
+static ssize_t doubletap_enable_show(struct device *dev,
+        struct device_attribute *attr, char *buf)
+{
+
+    //struct fts_ts_data *ts_data = dev_get_drvdata(dev);
+
+    return sprintf(buf, "%d\n", fts_gesture_data.mode);
+}
+
+
+static DEVICE_ATTR(doubletap_enable, 0660, doubletap_enable_show, doubletap_enable_store);
+
+static struct attribute *vsm_gesture_attrs[] = {
+    &dev_attr_doubletap_enable.attr,
+    NULL,
+};
+
+static const struct attribute_group tp_gesture_attr_group = {
+    .attrs = vsm_gesture_attrs,
+};
+
+int vsm_gesture_sysfs_init(struct fts_ts_data *ts_data)
+{
+    int ret;
+    vsm_class = class_create(THIS_MODULE, "vsm");
+    if (unlikely(IS_ERR(vsm_class))) {
+       FTS_ERROR("%s: Failed to create class(sec) %ld", __func__, PTR_ERR(vsm_class));
+        return PTR_ERR(vsm_class);
+    }
+
+    ts_data->sysfs_dev = device_create(vsm_class, NULL, 0, ts_data, "tp");
+    if (IS_ERR(ts_data->sysfs_dev)) {
+        FTS_ERROR("%s: failed to create device for the sysfs", __func__);
+        return -ENODEV;
+    }
+
+    dev_set_drvdata(ts_data->sysfs_dev, ts_data);
+
+    ret = sysfs_create_group(&ts_data->sysfs_dev->kobj, &tp_gesture_attr_group);
+    if (ret < 0) {
+        FTS_ERROR("%s: failed to create sysfs group", __func__);
+        goto err_sysfs_group;
+    }
+
+    return 0;
+
+err_sysfs_group:
+    device_destroy(vsm_class, 0);
+    return -ENODEV;
+}
+
+void vsm_gesture_sysfs_remove(struct fts_ts_data *ts_data)
+{
+    sysfs_remove_group(&ts_data->sysfs_dev->kobj, &tp_gesture_attr_group);
+    dev_set_drvdata(ts_data->sysfs_dev, NULL);
+    device_destroy(vsm_class, 0);
+}
+
 #endif

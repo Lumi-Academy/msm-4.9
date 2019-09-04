@@ -125,14 +125,24 @@ void fts_tp_state_recovery(struct fts_ts_data *ts_data)
 
 int fts_reset_proc(int hdelayms)
 {
+	int ret;
     FTS_DEBUG("tp reset");
+	if (gpio_is_valid(fts_data->pdata->reset_gpio)) {
+		ret = gpio_request(fts_data->pdata->reset_gpio, "fts_reset_gpio");
+		if (ret) {
+			FTS_ERROR("request tp rst gpio failed, ret=%d\n", ret);
+			return 0;
+		}
+	}
+		
     gpio_direction_output(fts_data->pdata->reset_gpio, 0);
     msleep(5);
     gpio_direction_output(fts_data->pdata->reset_gpio, 1);
     if (hdelayms) {
         msleep(hdelayms);
     }
-
+	if (gpio_is_valid(fts_data->pdata->reset_gpio))
+        gpio_free(fts_data->pdata->reset_gpio);
     return 0;
 }
 
@@ -1095,6 +1105,7 @@ static int fts_gpio_configure(struct fts_ts_data *data)
             FTS_ERROR("[GPIO]set_direction for reset gpio failed");
             goto err_reset_gpio_dir;
         }
+		gpio_free(data->pdata->reset_gpio);
     }
 
     FTS_FUNC_EXIT();
@@ -1380,6 +1391,9 @@ static int fts_ts_probe_entry(struct fts_ts_data *ts_data)
     if (ret) {
         FTS_ERROR("create sysfs node fail");
     }
+	ret = vsm_gesture_sysfs_init(ts_data);
+	if (ret < 0)
+		FTS_ERROR("%s: Failed to init TP gesture sysfs %d", __func__, ret);
 #endif
 
 #if FTS_POINT_REPORT_CHECK_EN
@@ -1478,6 +1492,7 @@ static int fts_ts_remove_entry(struct fts_ts_data *ts_data)
 
 #if FTS_SYSFS_NODE_EN
     fts_remove_sysfs(ts_data);
+	vsm_gesture_sysfs_remove(ts_data);
 #endif
 
     fts_ex_mode_exit(ts_data);
@@ -1600,7 +1615,7 @@ static int fts_ts_resume(struct device *dev)
     }
     else
     {
-         fts_reset_proc(50);
+         fts_reset_proc(200);
     }
 
     fts_tp_state_recovery(ts_data);
@@ -1632,7 +1647,7 @@ static int fts_ts_probe(struct i2c_client *client, const struct i2c_device_id *i
     int ret = 0;
     struct fts_ts_data *ts_data = NULL;
 
-    FTS_INFO("Touch Screen(I2C BUS) driver prboe...");
+    FTS_INFO("Touch Screen(I2C BUS) driver probe...");
     if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C)) {
         FTS_ERROR("I2C not supported");
         return -ENODEV;
