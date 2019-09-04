@@ -149,7 +149,6 @@
  */
 #define FTS_ESDCHECK_EN                         1
 
-
 /*
  * Nodes for tools, please keep enable
  */
