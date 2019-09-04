@@ -41,15 +41,15 @@
 		ti,bq2560x,chip-enable-gpio = <12>;
 		ti,bq2560x,usb-vlim = <4400>;
 		ti,bq2560x,usb-ilim = <500>;
-		ti,bq2560x,usb-vreg = <4400>;
+		ti,bq2560x,usb-vreg = <4392>;
 		ti,bq2560x,usb-ichg = <500>;
 
 		ti,bq2560x,ta-vlim = <4500>;
-		ti,bq2560x,ta-ilim = <2500>;
-		ti,bq2560x,ta-vreg = <4400>;
-		ti,bq2560x,ta-ichg = <1700>;
+		ti,bq2560x,ta-ilim = <2000>;
+		ti,bq2560x,ta-vreg = <4392>;
+		ti,bq2560x,ta-ichg = <1740>;
 
-		ti,bq2560x,precharge-current = <256>;
+		ti,bq2560x,precharge-current = <180>;
 		ti,bq2560x,termination-current = <180>;
 		ti,bq2560x,boost-voltage = <5150>;
 		ti,bq2560x,boost-current = <1200>;
@@ -66,13 +66,13 @@
 		ti,bq2560x,jeita-cold-hysteresis = <19>;
 
 		ti,bq2560x,jeita-cool-ma = <700>;
-		ti,bq2560x,jeita-cool-mv = <4400>;
+		ti,bq2560x,jeita-cool-mv = <4392>;
 		ti,bq2560x,jeita-warm-ma = <1500>;
 		ti,bq2560x,jeita-warm-mv = <4350>;
 
 		ti,bq2560x,software-jeita-supported;
 
-		qcom,thermal-mitigation = <1700 1520 1220 920 620 0>;
+		qcom,thermal-mitigation = <1740 1520 1220 920 620 0>;
 	};
 };
 
@@ -91,4 +91,5 @@
 		<0x39 0x81 0x37 0x82 0xffffffff>;
 	qcom,hsusb-otg-phy-init-seq-host =
 		<0x74 0x80 0x2b 0x81 0x3f 0x82 0x13 0x83 0xffffffff>;
+	extcon = <&bq2560x_otg_supply>;
 };
