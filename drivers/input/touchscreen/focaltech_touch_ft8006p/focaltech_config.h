@@ -123,7 +123,11 @@
  * show debug log info
  * enable it for debug, disable it for release
  */
+#ifdef CONFIG_QCOM_DLOAD_MODE
 #define FTS_DEBUG_EN                            1
+#else
+#define FTS_DEBUG_EN                            0
+#endif
 
 /*
  * Linux MultiTouch Protocol
