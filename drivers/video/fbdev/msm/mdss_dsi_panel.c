@@ -74,10 +74,8 @@ end:
 static void mdss_dsi_panel_bklt_pwm(struct mdss_dsi_ctrl_pdata *ctrl, int level)
 {
 	int ret;
-//	int ret_reg = 0;
 	u32 duty;
 	u32 period_ns;
-//	struct regulator *reg;
 	if (ctrl->pwm_bl == NULL) {
 		pr_err("%s: no PWM\n", __func__);
 		return;
@@ -93,21 +91,7 @@ static void mdss_dsi_panel_bklt_pwm(struct mdss_dsi_ctrl_pdata *ctrl, int level)
 			pwm_disable(ctrl->pwm_bl);
 		}
 		ctrl->pwm_enabled = 0;
-#if 0
-		reg = regulator_get(NULL,"lcdb_ldo");
-		if(reg)
-			{
-			ret_reg = regulator_disable(reg);
-			regulator_put(reg);
-			}
 
-		reg = regulator_get(NULL,"lcdb_ncp");
-		if(reg)
-			{
-			ret_reg = regulator_disable(reg);
-			regulator_put(reg);
-			}
-#endif
 		return;
 	}
 
@@ -130,16 +114,18 @@ static void mdss_dsi_panel_bklt_pwm(struct mdss_dsi_ctrl_pdata *ctrl, int level)
 		}
 	} else {
 		period_ns = ctrl->pwm_period * NSEC_PER_USEC;
-		ret = pwm_config(ctrl->pwm_bl,
-				level * period_ns / ctrl->bklt_max,
-				period_ns);
+		duty = level * period_ns / (ctrl->bklt_max);
+		//trungtq set minimum duty for minimum level
+		if (level == 1)
+			duty /= 2;
+
+		ret = pwm_config(ctrl->pwm_bl, duty, period_ns);
 		if (ret) {
 			pr_err("%s: pwm_config() failed err=%d.\n",
 					__func__, ret);
 			return;
 		}
 	}
-
 	if (!ctrl->pwm_enabled) {
 		ret = pwm_enable(ctrl->pwm_bl);
 		if (ret)
