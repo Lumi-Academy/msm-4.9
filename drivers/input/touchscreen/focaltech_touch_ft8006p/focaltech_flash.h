@@ -22,11 +22,14 @@
 * Private constant and macro definitions using #define
 *****************************************************************************/
 #define FTS_CMD_RESET                               0x07
+#define FTS_ROMBOOT_CMD_SET_PRAM_ADDR               0xAD
+#define FTS_ROMBOOT_CMD_SET_PRAM_ADDR_LEN           4
 #define FTS_ROMBOOT_CMD_WRITE                       0xAE
 #define FTS_ROMBOOT_CMD_START_APP                   0x08
 #define FTS_DELAY_PRAMBOOT_START                    10
 #define FTS_ROMBOOT_CMD_ECC                         0xCC
-
+#define FTS_PRAM_SADDR                              0x000000
+#define FTS_DRAM_SADDR                              0xD00000
 #define FTS_CMD_READ                                0x03
 #define FTS_CMD_READ_DELAY                          1
 #define FTS_CMD_READ_LEN                            4
@@ -149,6 +152,21 @@ struct upgrade_func {
 	int (*force_upgrade) (u8 *, u32);
 };
 
+struct upgrade_setting_nf {
+	u8 rom_idh;
+	u8 rom_idl;
+	u16 reserved;
+	u32 app2_offset;
+	u32 ecclen_max;
+	u8 eccok_val;
+	u8 upgsts_boot;
+	u8 delay_init;
+	bool spi_pe;
+	bool half_length;
+	bool fd_check;
+	bool drwr_support;
+};
+
 struct upgrade_module {
 	int id;
 	char vendor_name[MAX_MODULE_VENDOR_NAME_LEN];
@@ -160,6 +178,7 @@ struct fts_upgrade {
 	struct fts_ts_data *ts_data;
 	struct upgrade_module *module_info;
 	struct upgrade_func *func;
+	struct upgrade_setting_nf *setting_nf;
 	int module_id;
 	bool fw_from_request;
 	u8 *fw;

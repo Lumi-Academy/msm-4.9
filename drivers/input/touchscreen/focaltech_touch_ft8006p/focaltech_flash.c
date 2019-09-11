@@ -202,7 +202,7 @@ static int fts_fwupg_reset_to_romboot(struct fts_upgrade *upg)
 	return 0;
 }
 
-u16 fts_crc16_calc_host(u8 * pbuf, u16 length)
+static u16 fts_crc16_calc_host(u8 * pbuf, u16 length)
 {
 	u16 ecc = 0;
 	u16 i = 0;
@@ -932,7 +932,7 @@ int fts_flash_write_buf(u32 saddr, u8 * buf, u32 len, u32 delay)
  *
  * Warning: can't call this function directly, need call in boot environment
  ***********************************************************************/
-int fts_flash_read_buf(u32 saddr, u8 * buf, u32 len)
+static int fts_flash_read_buf(u32 saddr, u8 * buf, u32 len)
 {
 	int ret = 0;
 	u32 i = 0;
@@ -941,7 +941,7 @@ int fts_flash_read_buf(u32 saddr, u8 * buf, u32 len)
 	u32 addr = 0;
 	u32 offset = 0;
 	u32 remainder = 0;
-	u8 wbuf[FTS_CMD_READ_LEN];
+	u8 wbuf[FTS_CMD_READ_LEN] = { 0 };
 
 	if ((NULL == buf) || (0 == len)) {
 		FTS_ERROR("buf is NULL or len is 0");
@@ -993,7 +993,7 @@ int fts_flash_read_buf(u32 saddr, u8 * buf, u32 len)
  * Output: buf   - data read from flash
  * Return: return 0 if success, otherwise return error code
  ***********************************************************************/
-int fts_flash_read(u32 addr, u8 * buf, u32 len)
+static int fts_flash_read(u32 addr, u8 * buf, u32 len)
 {
 	int ret = 0;
 
@@ -1024,7 +1024,7 @@ read_flash_err:
 	return ret;
 }
 
-int fts_read_file(char *file_name, u8 ** file_buf)
+static int fts_read_file(char *file_name, u8 ** file_buf)
 {
 	int ret = 0;
 	char file_path[FILE_NAME_LENGTH] = { 0 };
@@ -1208,17 +1208,14 @@ static int fts_lic_get_ver_in_tp(u8 * ver)
 		FTS_ERROR("ver is NULL");
 		return -EINVAL;
 	}
-
 	ret = fts_read_reg(FTS_REG_LIC_VER, ver);
 	if (ret < 0) {
 		FTS_ERROR("read lcd initcode ver from tp fail");
 		return ret;
 	}
-
 	return 0;
 }
-
-static int fts_lic_get_ver_in_host(struct fts_upgrade *upg, u8 * ver)
+static int fts_lic_get_ver_in_host(struct fts_upgrade *upg, u8 * ver) 
 {
 	int ret = 0;
 
@@ -1226,7 +1223,6 @@ static int fts_lic_get_ver_in_host(struct fts_upgrade *upg, u8 * ver)
 		FTS_ERROR("upgrade/func/get_hlic_ver/lic is null");
 		return -EINVAL;
 	}
-
 	ret = upg->func->get_hlic_ver(upg->lic);
 	if (ret < 0) {
 		FTS_ERROR("get host lcd initial code version fail");
@@ -1981,6 +1977,8 @@ int fts_fwupg_init(struct fts_ts_data *ts_data)
 
 	if (NULL == fwupgrade->func) {
 		FTS_ERROR("no upgrade function match, can't upgrade");
+		kfree(fwupgrade);
+		fwupgrade = NULL;
 		return -ENODATA;
 	}
 

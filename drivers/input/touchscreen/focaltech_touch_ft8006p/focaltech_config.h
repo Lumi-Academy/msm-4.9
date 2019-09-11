@@ -36,7 +36,6 @@
 #define _FT8716             0x87160805
 #define _FT8736             0x87360806
 #define _FT8006M            0x80060807
-#define _FT7250             0x72500807
 #define _FT8607             0x86070809
 #define _FT8006U            0x8006D80B
 #define _FT8006S            0x8006A80B
@@ -49,6 +48,12 @@
 #define _FT7251             0x72510812
 #define _FT7252             0x72520813
 #define _FT8613S            0x8613C814
+#define _FT8756             0x87560815
+#define _FT8302             0x83020816
+#define _FT8009             0x80090817
+#define _FT8656             0x86560818
+#define _FT8006S_AA         0x86320819
+#define _FT7250             0x7250081A
 
 #define _FT5416             0x54160402
 #define _FT5426             0x54260402
@@ -109,6 +114,12 @@
 #define _FT7202             0x72020084
 #define _FT3308             0x33080084
 
+#define _FT6346U            0x6346D085
+#define _FT6346G            0x6346A085
+#define _FT3067             0x30670085
+#define _FT3068             0x30680085
+#define _FT3168             0x31680085
+#define _FT3268             0x32680085
 /*************************************************/
 
 /*
@@ -154,10 +165,10 @@
 #define FTS_ESDCHECK_EN                         1
 
 /*
- * Nodes for tools, please keep enable
+ * Production test enable
+ * 1: enable, 0:disable(default)
  */
-#define FTS_SYSFS_NODE_EN                       1
-#define FTS_APK_NODE_EN                         1
+#define FTS_TEST_EN                             1
 
 /*
  * Pinctrl enable
@@ -218,7 +229,7 @@
  * define your own fw_file, the sample one to be replaced is invalid
  * NOTE: if FTS_GET_MODULE_NUM > 1, it's the fw corresponding with FTS_VENDOR_ID
  */
-#define FTS_UPGRADE_FW_FILE                      "include/firmware/FT8006P_HLT_MANTIX6.088__V330_HTF061H027_V0x0b_L0x02_20190902_all.i"
+#define FTS_UPGRADE_FW_FILE                      "include/firmware/QM215_V330_FT8006P_V0x0c_L0x02_20190905_all.i"
 
 /*
  * if FTS_GET_MODULE_NUM >= 2, fw corrsponding with FTS_VENDOR_ID2

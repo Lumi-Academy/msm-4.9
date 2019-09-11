@@ -142,64 +142,56 @@ static int cal_lcdinitcode_ecc(u8 * buf, u16 * ecc_val)
 				/*                             temp_byte.bits.bit5, temp_byte.bits.bit6, temp_byte.bits.bit7); */
 
 				ecc.bits.bit0 =
-					ecc_last.bits.bit8 ^ ecc_last.bits.
-					bit9 ^ ecc_last.bits.bit10 ^ ecc_last.bits.
-					bit11 ^ ecc_last.bits.bit12 ^ ecc_last.bits.
-					bit13 ^ ecc_last.bits.bit14 ^ ecc_last.bits.
-					bit15 ^ temp_byte.bits.bit0 ^ temp_byte.
-					bits.bit1 ^ temp_byte.bits.bit2 ^ temp_byte.
-					bits.bit3 ^ temp_byte.bits.bit4 ^ temp_byte.
-					bits.bit5 ^ temp_byte.bits.bit6 ^ temp_byte.
-					bits.bit7;
+					ecc_last.bits.bit8 ^ ecc_last.bits.bit9
+					^ ecc_last.bits.bit10 ^ ecc_last.bits.bit11
+					^ ecc_last.bits.bit12 ^ ecc_last.bits.bit13
+					^ ecc_last.bits.bit14 ^ ecc_last.bits.bit15
+					^ temp_byte.bits.bit0 ^ temp_byte.bits.bit1
+					^ temp_byte.bits.bit2 ^ temp_byte.bits.bit3
+					^ temp_byte.bits.bit4 ^ temp_byte.bits.bit5
+					^ temp_byte.bits.bit6 ^ temp_byte.bits.bit7;
 
 				ecc.bits.bit1 =
-					ecc_last.bits.bit9 ^ ecc_last.bits.
-					bit10 ^ ecc_last.bits.bit11 ^ ecc_last.bits.
-					bit12 ^ ecc_last.bits.bit13 ^ ecc_last.bits.
-					bit14 ^ ecc_last.bits.bit15 ^ temp_byte.
-					bits.bit1 ^ temp_byte.bits.bit2 ^ temp_byte.
-					bits.bit3 ^ temp_byte.bits.bit4 ^ temp_byte.
-					bits.bit5 ^ temp_byte.bits.bit6 ^ temp_byte.
-					bits.bit7;
+					ecc_last.bits.bit9 ^ ecc_last.bits.bit10
+					^ ecc_last.bits.bit11 ^ ecc_last.bits.bit12
+					^ ecc_last.bits.bit13 ^ ecc_last.bits.bit14
+					^ ecc_last.bits.bit15 ^ temp_byte.bits.bit1
+					^ temp_byte.bits.bit2 ^ temp_byte.bits.bit3
+					^ temp_byte.bits.bit4 ^ temp_byte.bits.bit5
+					^ temp_byte.bits.bit6 ^ temp_byte.bits.bit7;
 
 				ecc.bits.bit2 =
-					ecc_last.bits.bit8 ^ ecc_last.bits.
-					bit9 ^ temp_byte.bits.bit0 ^ temp_byte.bits.
-					bit1;
+					ecc_last.bits.bit8 ^ ecc_last.bits.bit9
+					^ temp_byte.bits.bit0 ^ temp_byte.bits.bit1;
 
 				ecc.bits.bit3 =
-					ecc_last.bits.bit9 ^ ecc_last.bits.
-					bit10 ^ temp_byte.bits.bit1 ^ temp_byte.
-					bits.bit2;
+					ecc_last.bits.bit9 ^ ecc_last.bits.bit10
+					^ temp_byte.bits.bit1 ^ temp_byte.bits.bit2;
 
 				ecc.bits.bit4 =
-					ecc_last.bits.bit10 ^ ecc_last.bits.
-					bit11 ^ temp_byte.bits.bit2 ^ temp_byte.
-					bits.bit3;
+					ecc_last.bits.bit10 ^ ecc_last.bits.bit11
+					^ temp_byte.bits.bit2 ^ temp_byte.bits.bit3;
 
 				ecc.bits.bit5 =
-					ecc_last.bits.bit11 ^ ecc_last.bits.
-					bit12 ^ temp_byte.bits.bit3 ^ temp_byte.
-					bits.bit4;
+					ecc_last.bits.bit11 ^ ecc_last.bits.bit12
+					^ temp_byte.bits.bit3 ^ temp_byte.bits.bit4;
 
 				ecc.bits.bit6 =
-					ecc_last.bits.bit12 ^ ecc_last.bits.
-					bit13 ^ temp_byte.bits.bit4 ^ temp_byte.
-					bits.bit5;
+					ecc_last.bits.bit12 ^ ecc_last.bits.bit13
+					^ temp_byte.bits.bit4 ^ temp_byte.bits.bit5;
 
 				ecc.bits.bit7 =
-					ecc_last.bits.bit13 ^ ecc_last.bits.
-					bit14 ^ temp_byte.bits.bit5 ^ temp_byte.
-					bits.bit6;
+					ecc_last.bits.bit13 ^ ecc_last.bits.bit14
+					^ temp_byte.bits.bit5 ^ temp_byte.bits.bit6;
 
 				ecc.bits.bit8 =
-					ecc_last.bits.bit0 ^ ecc_last.bits.
-					bit14 ^ ecc_last.bits.bit15 ^ temp_byte.
-					bits.bit6 ^ temp_byte.bits.bit7;
+					ecc_last.bits.bit0 ^ ecc_last.bits.bit14
+					^ ecc_last.bits.bit15 ^ temp_byte.bits.bit6
+					^ temp_byte.bits.bit7;
 
 				ecc.bits.bit9 =
-					ecc_last.bits.bit1 ^ ecc_last.bits.
-					bit15 ^ temp_byte.bits.bit7;
+					ecc_last.bits.bit1 ^ ecc_last.bits.bit15
+					^ temp_byte.bits.bit7;
 
 				ecc.bits.bit10 = ecc_last.bits.bit2;
 
@@ -212,15 +204,15 @@ static int cal_lcdinitcode_ecc(u8 * buf, u16 * ecc_val)
 				ecc.bits.bit14 = ecc_last.bits.bit6;
 
 				ecc.bits.bit15 =
-					ecc_last.bits.bit7 ^ ecc_last.bits.
-					bit8 ^ ecc_last.bits.bit9 ^ ecc_last.bits.
-					bit10 ^ ecc_last.bits.bit11 ^ ecc_last.bits.
-					bit12 ^ ecc_last.bits.bit13 ^ ecc_last.bits.
-					bit14 ^ ecc_last.bits.bit15 ^ temp_byte.
-					bits.bit0 ^ temp_byte.bits.bit1 ^ temp_byte.
-					bits.bit2 ^ temp_byte.bits.bit3 ^ temp_byte.
-					bits.bit4 ^ temp_byte.bits.bit5 ^ temp_byte.
-					bits.bit6 ^ temp_byte.bits.bit7;
+					ecc_last.bits.bit7 ^ ecc_last.bits.bit8
+					^ ecc_last.bits.bit9 ^ ecc_last.bits.bit10
+					^ ecc_last.bits.bit11 ^ ecc_last.bits.bit12
+					^ ecc_last.bits.bit13 ^ ecc_last.bits.bit14
+					^ ecc_last.bits.bit15 ^ temp_byte.bits.bit0
+					^ temp_byte.bits.bit1 ^ temp_byte.bits.bit2
+					^ temp_byte.bits.bit3 ^ temp_byte.bits.bit4
+					^ temp_byte.bits.bit5 ^ temp_byte.bits.bit6
+					^ temp_byte.bits.bit7;
 
 				ecc_last.dshort = ecc.dshort;
 
@@ -277,7 +269,7 @@ static int check_initial_code_valid(u8 * buf)
 	initcode_checksum = cal_lcdinitcode_checksum(buf + 2, hlic_len - 2);
 	buf_checksum = ((u16) ((u16) buf[1] << 8) + buf[0]);
 	FTS_INFO("lcd init code calc checksum:0x%04x,0x%04x", initcode_checksum,
-		 buf_checksum);
+		buf_checksum);
 	if (initcode_checksum != buf_checksum) {
 		FTS_ERROR("Initial Code checksum fail");
 		return -EINVAL;
@@ -306,7 +298,7 @@ static int print_data(u8 * buf, u32 len)
 
 	p = kzalloc(len * 4, GFP_KERNEL);
 	for (i = 0; i < len; i++) {
-		n += sprintf(p + n, "%02x ", buf[i]);
+		n += snprintf(p + n, (len * 4 - n), "%02x ", buf[i]);
 	}
 
 	FTS_DEBUG("%s", p);
@@ -326,7 +318,7 @@ static int print_data(u8 * buf, u32 len)
  * return: return 0 if success, otherwise return error code
  */
 static int find_bank(u8 * initcode,
-		     u16 bank_start_addr, u16 bank_sign, u16 * bank_pos)
+		u16 bank_start_addr, u16 bank_sign, u16 * bank_pos)
 {
 	u16 file_len = 0;
 	u16 pos = 0;
