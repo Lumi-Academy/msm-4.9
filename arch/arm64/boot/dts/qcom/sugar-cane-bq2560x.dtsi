@@ -57,7 +57,7 @@
 		ti,bq2560x,stat-pin-ctrl = <3>;
 		ti,bq2560x,vac-ovp-threshold = <6500>;
 
-		ti,bq2560x,jeita-hot-degc = <550>;
+		ti,bq2560x,jeita-hot-degc = <530>;
 		ti,bq2560x,jeita-warm-degc = <450>;
 		ti,bq2560x,jeita-cool-degc = <150>;
 		ti,bq2560x,jeita-cold-degc = <0>;
