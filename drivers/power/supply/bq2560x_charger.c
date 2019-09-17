@@ -1080,6 +1080,7 @@ static int bq2560x_update_charging_profile(struct bq2560x *bq)
 	if (bq->jeita_active) {
 		chg_ma = bq->jeita_ma;
 		chg_mv = bq->jeita_mv;
+		icl = bq->usb_psy_ma;
 	} else {
 		if (prop.intval == POWER_SUPPLY_TYPE_USB_DCP
 			|| prop.intval == POWER_SUPPLY_TYPE_USB_CDP) {
