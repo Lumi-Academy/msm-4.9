@@ -100,8 +100,6 @@ static irqreturn_t sec_nfc_irq_thread_fn(int irq, void *dev_id)
     struct sec_nfc_info *info = dev_id;
     struct sec_nfc_platform_data *pdata = info->pdata;
 
-    dev_dbg(info->dev, "[NFC] Read Interrupt is occurred!\n");
-
     if (gpio_get_value(pdata->irq) == 0) {
         dev_err(info->dev, "[NFC] Warning,irq-gpio state is low!\n");
         return IRQ_HANDLED;
