@@ -88,10 +88,10 @@ int idc_esdcheck_lcderror(struct fts_ts_data *ts_data)
 	int ret = 0;
 	u8 val = 0;
 
-	FTS_DEBUG("check LCD ESD");
 	if ((tp_need_recovery == 1) && (lcd_need_reset == 0)) {
 		tp_need_recovery = 0;
 		/* LCD reset, need recover TP state */
+		FTS_DEBUG("LCD reset, need recover TP state");
 		fts_release_all_finger();
 		fts_tp_state_recovery(ts_data);
 	}
