@@ -439,7 +439,7 @@ static int mdss_dsi_panel_power_on(struct mdss_panel_data *pdata)
 	ctrl_pdata = container_of(pdata, struct mdss_dsi_ctrl_pdata,
 				panel_data);
 
-	if (gpio_is_valid(ctrl_pdata->vdd_ext_gpio)) {
+	if ((tsp_gesture_status == 0) && gpio_is_valid(ctrl_pdata->vdd_ext_gpio)) {
 		ret = gpio_direction_output(
 				ctrl_pdata->vdd_ext_gpio, 1);
 		usleep_range(3000, 4000); /* h/w recommended delay */
@@ -448,7 +448,7 @@ static int mdss_dsi_panel_power_on(struct mdss_panel_data *pdata)
 					__func__);
 		pr_debug("%s: vdd gpio output on\n",	__func__);
 	}
-	if (gpio_is_valid(ctrl_pdata->vdd_en_gpio)) {
+	if ((tsp_gesture_status == 0) && gpio_is_valid(ctrl_pdata->vdd_en_gpio)) {
 		ret = gpio_direction_output(
 				ctrl_pdata->vdd_en_gpio, 1);
 		if (ret)
@@ -457,7 +457,7 @@ static int mdss_dsi_panel_power_on(struct mdss_panel_data *pdata)
 		pr_debug("%s: vdd en gpio output on\n", __func__);
 	}
 
-	if (gpio_is_valid(ctrl_pdata->vee_en_gpio)) {
+	if ((tsp_gesture_status == 0) && gpio_is_valid(ctrl_pdata->vee_en_gpio)) {
 		ret = gpio_direction_output(
 				ctrl_pdata->vee_en_gpio, 1);
 		usleep_range(5000, 6000); /* datasheet */

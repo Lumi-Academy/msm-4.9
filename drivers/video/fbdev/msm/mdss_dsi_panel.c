@@ -390,7 +390,7 @@ int mdss_dsi_panel_reset(struct mdss_panel_data *pdata, int enable)
 {
 	struct mdss_dsi_ctrl_pdata *ctrl_pdata = NULL;
 	struct mdss_panel_info *pinfo = NULL;
-	int i, rc = 0;
+	int i, rc = 0, rc_tp = 0;
 
 	if (pdata == NULL) {
 		pr_err("%s: Invalid input data\n", __func__);
@@ -471,23 +471,45 @@ int mdss_dsi_panel_reset(struct mdss_panel_data *pdata, int enable)
 				usleep_range(100, 110);
 			}
 
+			/* For TP exit gesture mode */
+			if (gpio_is_valid(ctrl_pdata->tp_rst_gpio)) {
+				rc_tp = gpio_request(ctrl_pdata->tp_rst_gpio, "tp_rst_gpio");
+				if (rc_tp) {
+					pr_err("FTS: request tp rst gpio failed, rc_tp =%d\n", rc_tp);
+				} else {
+					if (tsp_gesture_status == 1) {
+					gpio_set_value(ctrl_pdata->tp_rst_gpio, 0);
+					usleep_range(5000, 5005);
+					pr_debug("FTS: set TP_RST 0\n");
+					}
+				}
+			}
 			if (pdata->panel_info.rst_seq_len) {
 				rc = gpio_direction_output(ctrl_pdata->rst_gpio,
 					pdata->panel_info.rst_seq[0]);
 				if (rc) {
 					pr_err("%s: unable to set dir for rst gpio\n",
 						__func__);
+					gpio_free(ctrl_pdata->tp_rst_gpio);
 					goto exit;
 				}
 			}
 
 			for (i = 0; i < pdata->panel_info.rst_seq_len; ++i) {
+				if (rc_tp == 0) {
+					gpio_set_value((ctrl_pdata->tp_rst_gpio),
+						pdata->panel_info.rst_seq[i]);
+					pr_debug("FTS: SET TP_RST %d\n",
+						pdata->panel_info.rst_seq[i]);
+				}
 				gpio_set_value((ctrl_pdata->rst_gpio),
 					pdata->panel_info.rst_seq[i]);
 				if (pdata->panel_info.rst_seq[++i])
 					usleep_range((pinfo->rst_seq[i] * 1000),
 					(pinfo->rst_seq[i] * 1000) + 10);
 			}
+			if (rc_tp == 0)
+				gpio_free(ctrl_pdata->tp_rst_gpio);
 
 			if (gpio_is_valid(ctrl_pdata->bklt_en_gpio)) {
 
@@ -544,13 +566,14 @@ int mdss_dsi_panel_reset(struct mdss_panel_data *pdata, int enable)
 		}
 
 		if (gpio_is_valid(ctrl_pdata->tp_rst_gpio)) {
-			rc = gpio_request(ctrl_pdata->tp_rst_gpio, "tp_rst_gpio");
-			if (rc) {
-				pr_err("request tp rst gpio failed, rc=%d\n", rc);
+			rc_tp = gpio_request(ctrl_pdata->tp_rst_gpio, "tp_rst_gpio");
+			if (rc_tp) {
+				pr_err("FTS: request tp rst gpio failed, rc_tp=%d\n", rc_tp);
 			} else {
 				if (tsp_gesture_status == 0) {
 					gpio_set_value(ctrl_pdata->tp_rst_gpio, 0);
 					usleep_range(100, 110);
+					pr_debug("FTS: set TP_RST 0\n");
 				}
 				gpio_free(ctrl_pdata->tp_rst_gpio);
 			}
