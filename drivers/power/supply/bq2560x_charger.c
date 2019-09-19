@@ -1274,6 +1274,7 @@ static enum power_supply_property bq2560x_usb_props[] = {
 	POWER_SUPPLY_PROP_VOLTAGE_MAX,
 };
 #define MICRO_5V        5000000
+#define CDP_DCP_MAX_NOTIFY_CURRENT 1400000
 static int bq2560x_usb_get_property(struct power_supply *psy,
 				  enum power_supply_property psp,
 				  union power_supply_propval *val)
@@ -1283,7 +1284,11 @@ static int bq2560x_usb_get_property(struct power_supply *psy,
 	switch (psp) {
 	case POWER_SUPPLY_PROP_SDP_CURRENT_MAX:
 	case POWER_SUPPLY_PROP_CURRENT_MAX:
-		val->intval = bq->usb_psy_ma * 1000;
+               if(bq->usb_supply_type == POWER_SUPPLY_TYPE_USB_DCP
+                       || bq->usb_supply_type ==POWER_SUPPLY_TYPE_USB_CDP)
+                       val->intval = CDP_DCP_MAX_NOTIFY_CURRENT;
+               else
+                       val->intval = bq->usb_psy_ma * 1000;
 		break;
 	case POWER_SUPPLY_PROP_PRESENT:
 		val->intval = bq->usb_present;
@@ -1329,7 +1334,7 @@ static int bq2560x_usb_set_property(struct power_supply *psy,
 	/*	dont let outside decide current anymore, we will decide base on cable type our-self */
 	case POWER_SUPPLY_PROP_SDP_CURRENT_MAX:
 	case POWER_SUPPLY_PROP_CURRENT_MAX:
-		//bq->usb_psy_ma = val->intval/1000;
+		bq->usb_psy_ma = val->intval/1000;
 		break;
 	case POWER_SUPPLY_PROP_TYPE:
 	case POWER_SUPPLY_PROP_REAL_TYPE:
