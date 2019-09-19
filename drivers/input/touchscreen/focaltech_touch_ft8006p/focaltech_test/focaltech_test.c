@@ -2006,7 +2006,7 @@ static ssize_t fts_test_store(struct device *dev,
 /*  test from test.ini
 *    example:echo "***.ini" > fts_test
 */
-static DEVICE_ATTR(fts_test, S_IRUGO | S_IWUSR, fts_test_show, fts_test_store);
+static DEVICE_ATTR(fts_test, S_IRUGO | S_IWUSR | S_IWGRP, fts_test_show, fts_test_store);
 
 static struct attribute *fts_test_attributes[] = {
 	&dev_attr_fts_test.attr,
@@ -2070,14 +2070,20 @@ int fts_test_init(struct fts_ts_data *ts_data)
 		return ret;
 	}
 
-	ret =
-	    sysfs_create_group(&ts_data->dev->kobj, &fts_test_attribute_group);
+	ret = sysfs_create_group(&ts_data->dev->kobj, &fts_test_attribute_group);
 	if (0 != ret) {
 		FTS_TEST_ERROR("sysfs(test) create fail");
 		sysfs_remove_group(&ts_data->dev->kobj,
 				   &fts_test_attribute_group);
 	} else {
 		FTS_TEST_DBG("sysfs(test) create successfully");
+	}
+
+	/*For VSM path*/
+	if (!IS_ERR(ts_data->sysfs_dev)) {
+		ret = sysfs_create_group(&ts_data->sysfs_dev->kobj, &fts_test_attribute_group);
+		if (0 != ret)
+			FTS_TEST_ERROR("[VSM class] sysfs(test) create fail");
 	}
 	FTS_TEST_FUNC_EXIT();
 
@@ -2089,6 +2095,8 @@ int fts_test_exit(struct fts_ts_data *ts_data)
 	FTS_TEST_FUNC_ENTER();
 
 	sysfs_remove_group(&ts_data->dev->kobj, &fts_test_attribute_group);
+	if (!IS_ERR(ts_data->sysfs_dev))
+		sysfs_remove_group(&ts_data->sysfs_dev->kobj, &fts_test_attribute_group);
 	fts_free(fts_ftest);
 	FTS_TEST_FUNC_EXIT();
 	return 0;
