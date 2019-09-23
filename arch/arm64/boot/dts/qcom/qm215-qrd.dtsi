@@ -83,6 +83,11 @@
 	};
 	i2c@78b6000 {
 		status = "ok";
+		ocp2130@38 {
+		compatible = "nt,nt50358a";
+		reg = <0x3E>;
+		status = "okay";
+		};
 	};
 };
 
