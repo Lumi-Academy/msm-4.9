@@ -908,6 +908,9 @@ static enum power_supply_property bq2560x_charger_props[] = {
 	POWER_SUPPLY_PROP_CHARGE_FULL,
 	POWER_SUPPLY_PROP_SYSTEM_TEMP_LEVEL,
 	POWER_SUPPLY_PROP_RESISTANCE_ID,
+	POWER_SUPPLY_PROP_CHARGE_COUNTER,
+	POWER_SUPPLY_PROP_TECHNOLOGY,
+
 };
 #if 0
 void static runin_work(struct bq2560x *bq, int batt_capacity)
@@ -993,10 +996,14 @@ static int bq2560x_charger_get_property(struct power_supply *psy,
 		bq2560x_get_batt_property(bq,
 			POWER_SUPPLY_PROP_VOLTAGE_NOW, val);
 		break;
+	case POWER_SUPPLY_PROP_TECHNOLOGY:
+		val->intval = POWER_SUPPLY_TECHNOLOGY_LION;
+		break;
 	case POWER_SUPPLY_PROP_CURRENT_NOW:
 	case POWER_SUPPLY_PROP_TEMP:
 	case POWER_SUPPLY_PROP_CHARGE_FULL:
 	case POWER_SUPPLY_PROP_RESISTANCE_ID:
+	case POWER_SUPPLY_PROP_CHARGE_COUNTER:
 		return bq2560x_get_batt_property(bq, psp, val);
 	default:
 		return -EINVAL;
