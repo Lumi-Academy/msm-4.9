@@ -834,6 +834,12 @@ static int bq2560x_get_prop_charge_status(struct bq2560x *bq)
 {
 	int ret;
 	u8 status;
+	union power_supply_propval batt_prop = {0,};
+
+	ret = bq2560x_get_batt_property(bq,
+			POWER_SUPPLY_PROP_STATUS, &batt_prop);
+	if (!ret && batt_prop.intval == POWER_SUPPLY_STATUS_FULL)
+		return POWER_SUPPLY_STATUS_FULL;
 
 	ret = bq2560x_read_byte(bq, &status, BQ2560X_REG_08);
 	if (ret) {
@@ -1234,6 +1240,9 @@ static void bq2560x_external_power_changed(struct power_supply *psy)
 
 }
 
+static char *pm_batt_supplied_to[] = {
+	"bms",
+};
 
 static int bq2560x_psy_register(struct bq2560x *bq)
 {
@@ -1250,7 +1259,8 @@ static int bq2560x_psy_register(struct bq2560x *bq)
 	bq->batt_psy_d.property_is_writeable = bq2560x_charger_is_writeable;
 
 	batt_psy_cfg.drv_data = bq;
-	batt_psy_cfg.num_supplicants = 0;
+	batt_psy_cfg.supplied_to = pm_batt_supplied_to;
+	batt_psy_cfg.num_supplicants = ARRAY_SIZE(pm_batt_supplied_to);
 
 	bq->batt_psy = devm_power_supply_register(bq->dev,
 			&bq->batt_psy_d,
