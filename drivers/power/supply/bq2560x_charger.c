@@ -838,8 +838,8 @@ static int bq2560x_get_prop_charge_status(struct bq2560x *bq)
 
 	ret = bq2560x_get_batt_property(bq,
 			POWER_SUPPLY_PROP_STATUS, &batt_prop);
-	if (!ret && batt_prop.intval == POWER_SUPPLY_STATUS_FULL)
-		return POWER_SUPPLY_STATUS_FULL;
+	//if (!ret && batt_prop.intval == POWER_SUPPLY_STATUS_FULL)
+	//	return POWER_SUPPLY_STATUS_FULL;
 
 	ret = bq2560x_read_byte(bq, &status, BQ2560X_REG_08);
 	if (ret) {
@@ -862,6 +862,9 @@ static int bq2560x_get_prop_charge_status(struct bq2560x *bq)
 		case CHARGE_STATE_CHGDONE:
 			return POWER_SUPPLY_STATUS_FULL;
 		case CHARGE_STATE_IDLE:
+		  if (batt_prop.intval == POWER_SUPPLY_STATUS_FULL && bq->usb_present)
+			return POWER_SUPPLY_STATUS_FULL;
+		  else
 			return POWER_SUPPLY_STATUS_DISCHARGING;
 		default:
 			return 	POWER_SUPPLY_STATUS_UNKNOWN;
