@@ -42,16 +42,16 @@
 		ti,bq2560x,chip-enable-gpio = <12>;
 		ti,bq2560x,usb-vlim = <4400>;
 		ti,bq2560x,usb-ilim = <500>;
-		ti,bq2560x,usb-vreg = <4400>;
+		ti,bq2560x,usb-vreg = <4435>;
 		ti,bq2560x,usb-ichg = <500>;
 
 		ti,bq2560x,ta-vlim = <4500>;
 		ti,bq2560x,ta-ilim = <2000>;
-		ti,bq2560x,ta-vreg = <4400>;
-		ti,bq2560x,ta-ichg = <1740>;
+		ti,bq2560x,ta-vreg = <4435>;
+		ti,bq2560x,ta-ichg = <1740>;/**/
 
 		ti,bq2560x,precharge-current = <180>;
-		ti,bq2560x,termination-current = <180>;
+		ti,bq2560x,termination-current = <242>;
 		ti,bq2560x,boost-voltage = <5150>;
 		ti,bq2560x,boost-current = <1200>;
 		ti,bq2560x,enable_term;
@@ -73,7 +73,7 @@
 
 		ti,bq2560x,software-jeita-supported;
 
-		ti,thermal-mitigation = <1740 1520 1220 920 620 0>;
+		ti,thermal-mitigation = <1740 1320 920 620 420 100>;
 	};
 };
 

@@ -520,6 +520,21 @@
 			thermal-governor = "step_wise";
 
 			trips {
+				qm215_batt_trip0: qm215-batt-trip0 {
+					temperature = <53000>;
+					hysteresis = <2000>;
+					type = "passive";
+				};
+				qm215_batt_trip1: qm215-batt-trip1 {
+					temperature = <55000>;
+					hysteresis = <2000>;
+					type = "passive";
+				};
+				qm215_batt_trip2: qm215-batt-trip2 {
+					temperature = <57000>;
+					hysteresis = <2000>;
+					type = "passive";
+				};
 				qm215_cpu_trip: qm215-cpu-trip {
 					temperature = <48000>;
 					hysteresis = <0>;
@@ -560,6 +575,18 @@
 					cooling-device = <&msm_gpu
 							THERMAL_NO_LIMIT
 							(THERMAL_MAX_LIMIT-1)>;
+				};
+				battery_lvl1 {
+					trip = <&qm215_batt_trip0>;
+					cooling-device = <&bq2560x_otg_supply 4 4>;
+				};
+				battery_lvl2 {
+					trip = <&qm215_batt_trip1>;
+					cooling-device = <&bq2560x_otg_supply 5 5>;
+				};
+				battery_lvl3 {
+					trip = <&qm215_batt_trip2>;
+					cooling-device = <&bq2560x_otg_supply 6 6>;
 				};
 			};
 		};

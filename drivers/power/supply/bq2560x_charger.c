@@ -684,7 +684,7 @@ EXPORT_SYMBOL_GPL(bq2560x_set_batfet_delay);
 
 static int bq2560x_set_vdpm_bat_track(struct bq2560x *bq)
 {
-	const u8 val = REG07_VDPM_BAT_TRACK_DISABLE << REG07_VDPM_BAT_TRACK_SHIFT;
+	const u8 val = REG07_VDPM_BAT_TRACK_200MV << REG07_VDPM_BAT_TRACK_SHIFT;
 
 	return bq2560x_update_bits(bq, BQ2560X_REG_07, REG07_VDPM_BAT_TRACK_MASK,
 				val);
@@ -1000,10 +1000,9 @@ static int bq2560x_charger_get_property(struct power_supply *psy,
 		val->intval = bq->thermal_levels;
 		break;
 	case POWER_SUPPLY_PROP_PRESENT:
-	/*
 		bq2560x_get_batt_property(bq,
-			POWER_SUPPLY_PROP_PRESENT, val);*/
-		val->intval = 1;
+			POWER_SUPPLY_PROP_PRESENT, val);
+		//val->intval = 1;
 		break;
 	case POWER_SUPPLY_PROP_VOLTAGE_NOW:
 		bq2560x_get_batt_property(bq,
