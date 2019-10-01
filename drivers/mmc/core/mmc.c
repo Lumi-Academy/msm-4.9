@@ -713,6 +713,9 @@ static int mmc_decode_ext_csd(struct mmc_card *card, u8 *ext_csd)
 			(card->ext_csd.rel_param &
 			 EXT_CSD_WR_REL_PARAM_EN_RPMB_REL_WR);
 
+	/*Print supplier code*/
+	pr_info("%s: eMMC supplier: 0x%x\n",
+			mmc_hostname(card->host), card->cid.manfid);
 out:
 	return err;
 }
