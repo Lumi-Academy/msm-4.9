@@ -486,7 +486,12 @@
 			#address-cells = <1>;
 			#size-cells = <1>;
 
-			qcom,qg-iterm-ma = <300>;
+			qcom,qg-iterm-ma = <330>;
+			qcom,vbatt-cutoff-mv = <3450>;
+			qcom,vbatt-low-mv = <3550>;
+			qcom,vbatt-low-cold-mv = <3850>;
+			qcom,vbatt-empty-mv = <3250>;
+			qcom,vbatt-empty-cold-mv = <3050>;
 			qcom,hold-soc-while-full;
 			qcom,linearize-soc;
 			qcom,qg-vadc = <&pmi632_vadc>;
