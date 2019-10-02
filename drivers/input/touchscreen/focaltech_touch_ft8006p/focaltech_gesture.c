@@ -33,6 +33,7 @@
 * 1.Included header files
 *****************************************************************************/
 #include "focaltech_core.h"
+#include "focaltech_flash.h"
 
 /******************************************************************************
 * Private constant and macro definitions using #define
@@ -99,6 +100,8 @@ static struct fts_gesture_st fts_gesture_data;
 *****************************************************************************/
 struct class *vsm_class;
 int tsp_gesture_status = 0;
+
+extern struct fts_upgrade *fwupgrade;
 
 /*****************************************************************************
 * Static function prototypes
@@ -420,7 +423,7 @@ static ssize_t doubletap_enable_store(struct device *dev,
 }
 
 static ssize_t doubletap_enable_show(struct device *dev,
-				     struct device_attribute *attr, char *buf)
+					struct device_attribute *attr, char *buf)
 {
 
 	struct fts_ts_data *ts_data = dev_get_drvdata(dev);
@@ -428,16 +431,71 @@ static ssize_t doubletap_enable_show(struct device *dev,
 	return sprintf(buf, "%d\n", ts_data->gesture_mode);
 }
 
+static ssize_t get_fw_ver_ic_show(struct device *dev,
+					struct device_attribute *attr, char *buf)
+{
+
+	struct fts_ts_data *ts_data = dev_get_drvdata(dev);
+
+	struct input_dev *input_dev = ts_data->input_dev;
+	ssize_t num_read_chars = 0;
+	u8 fwver = 0;
+
+	mutex_lock(&input_dev->mutex);
+
+#if FTS_ESDCHECK_EN
+	fts_esdcheck_proc_busy(1);
+#endif
+	fts_read_reg(FTS_REG_FW_VER, &fwver);
+#if FTS_ESDCHECK_EN
+	fts_esdcheck_proc_busy(0);
+#endif
+	if ((fwver == 0xFF) || (fwver == 0x00))
+		num_read_chars = snprintf(buf, PAGE_SIZE, "NG\n");
+	else
+		num_read_chars = snprintf(buf, PAGE_SIZE, "FW in IC: %02x\n", fwver);
+
+	mutex_unlock(&input_dev->mutex);
+	return num_read_chars;
+}
+
+static ssize_t get_fw_ver_bin_show(struct device *dev,
+					struct device_attribute *attr, char *buf)
+{
+	struct fts_upgrade *upg = fwupgrade;
+	ssize_t num_read_chars = 0;
+
+	if (upg->fw_length < upg->func->fwveroff)
+		num_read_chars = snprintf(buf, PAGE_SIZE, "NG\n");
+	else
+		num_read_chars = snprintf(buf, PAGE_SIZE, "FW in BIN: %02x\n",
+							upg->fw[upg->func->fwveroff]);
+
+	return num_read_chars;
+}
+
+static ssize_t get_ic_name_show(struct device *dev,
+					struct device_attribute *attr, char *buf)
+{
+	return snprintf(buf, PAGE_SIZE, "IC: FT8006P - INCELL\n");;
+}
+
 static DEVICE_ATTR(doubletap_enable, 0660, doubletap_enable_show,
 			doubletap_enable_store);
+static DEVICE_ATTR(get_fw_ver_ic, 0440, get_fw_ver_ic_show, NULL);
+static DEVICE_ATTR(get_fw_ver_bin, 0440, get_fw_ver_bin_show, NULL);
+static DEVICE_ATTR(get_ic_name, 0440, get_ic_name_show, NULL);
 
-static struct attribute *vsm_gesture_attrs[] = {
+static struct attribute *vsm_tsp_attrs[] = {
 	&dev_attr_doubletap_enable.attr,
+	&dev_attr_get_fw_ver_ic.attr,
+	&dev_attr_get_fw_ver_bin.attr,
+	&dev_attr_get_ic_name.attr,
 	NULL,
 };
 
-static const struct attribute_group tp_gesture_attr_group = {
-	.attrs = vsm_gesture_attrs,
+static const struct attribute_group vsm_tsp_attr_group = {
+	.attrs = vsm_tsp_attrs,
 };
 
 int vsm_gesture_sysfs_init(struct fts_ts_data *ts_data)
@@ -459,7 +517,7 @@ int vsm_gesture_sysfs_init(struct fts_ts_data *ts_data)
 	dev_set_drvdata(ts_data->sysfs_dev, ts_data);
 
 	ret = sysfs_create_group(&ts_data->sysfs_dev->kobj,
-				&tp_gesture_attr_group);
+				&vsm_tsp_attr_group);
 	if (ret < 0) {
 		FTS_ERROR("%s: failed to create sysfs group", __func__);
 		goto err_sysfs_group;
@@ -474,7 +532,7 @@ err_sysfs_group:
 
 void vsm_gesture_sysfs_remove(struct fts_ts_data *ts_data)
 {
-	sysfs_remove_group(&ts_data->sysfs_dev->kobj, &tp_gesture_attr_group);
+	sysfs_remove_group(&ts_data->sysfs_dev->kobj, &vsm_tsp_attr_group);
 	dev_set_drvdata(ts_data->sysfs_dev, NULL);
 	device_destroy(vsm_class, 0);
 }
