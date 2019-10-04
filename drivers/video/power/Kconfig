@@ -1,0 +1,6 @@
+config NT50358A
+    bool "NT50358A"
+    default n
+    help
+      Say Y here if you have NT50358A.
+      If unsure, say N.
