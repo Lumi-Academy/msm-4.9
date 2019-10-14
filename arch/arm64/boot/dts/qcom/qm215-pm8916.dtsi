@@ -573,11 +573,11 @@
 				};
 				battery_lvl1 {
 					trip = <&qm215_batt_trip0>;
-					cooling-device = <&pm8916_chg 1 1>;
+					cooling-device = <&bq2560x_otg_supply 1 1>;
 				};
 				battery_lvl2 {
 					trip = <&qm215_batt_trip1>;
-					cooling-device = <&pm8916_chg 2 2>;
+					cooling-device = <&bq2560x_otg_supply 2 2>;
 				};
 			};
 		};

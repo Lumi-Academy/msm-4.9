@@ -915,7 +915,8 @@ static enum power_supply_property bq2560x_charger_props[] = {
 	POWER_SUPPLY_PROP_STATUS,
 	POWER_SUPPLY_PROP_TEMP,
 	POWER_SUPPLY_PROP_CHARGE_FULL,
-	POWER_SUPPLY_PROP_SYSTEM_TEMP_LEVEL,
+	POWER_SUPPLY_PROP_CHARGE_CONTROL_LIMIT,
+	POWER_SUPPLY_PROP_CHARGE_CONTROL_LIMIT_MAX,
 	POWER_SUPPLY_PROP_RESISTANCE_ID,
 	POWER_SUPPLY_PROP_CHARGE_COUNTER,
 	POWER_SUPPLY_PROP_TECHNOLOGY,
@@ -992,8 +993,11 @@ static int bq2560x_charger_get_property(struct power_supply *psy,
 		bq2560x_get_batt_property(bq, psp, val);
 		//runin_work(bq, val->intval);
 		break;
-	case POWER_SUPPLY_PROP_SYSTEM_TEMP_LEVEL:
+	case POWER_SUPPLY_PROP_CHARGE_CONTROL_LIMIT:
 		val->intval = bq->therm_lvl_sel;
+		break;
+	case POWER_SUPPLY_PROP_CHARGE_CONTROL_LIMIT_MAX:
+		val->intval = bq->thermal_levels;
 		break;
 	case POWER_SUPPLY_PROP_PRESENT:
 	/*
@@ -1038,7 +1042,7 @@ static int bq2560x_charger_set_property(struct power_supply *psy,
 		pr_debug("POWER_SUPPLY_PROP_CHARGING_ENABLED: %s\n", 
 				val->intval ? "enable" : "disable");
 		break;
-	case POWER_SUPPLY_PROP_SYSTEM_TEMP_LEVEL:
+	case POWER_SUPPLY_PROP_CHARGE_CONTROL_LIMIT:
 		bq2560x_system_temp_level_set(bq, val->intval);
 		break;
 	default:
@@ -1055,7 +1059,7 @@ static int bq2560x_charger_is_writeable(struct power_supply *psy,
 
 	switch (prop) {
 	case POWER_SUPPLY_PROP_CHARGING_ENABLED:
-	case POWER_SUPPLY_PROP_SYSTEM_TEMP_LEVEL:
+	case POWER_SUPPLY_PROP_CHARGE_CONTROL_LIMIT:
 		ret = 1;
 		break;
 	default:

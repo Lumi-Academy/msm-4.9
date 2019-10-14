@@ -33,6 +33,7 @@
 	bq2560x_otg_supply: bq2560x@6B {
 		compatible = "ti,bq25601-charger";
 		reg = <0x6B>;
+                #cooling-cells = <2>;
 		interrupt-parent = <&tlmm>;
 		interrupts = <13 2>;
 		pinctrl-names = "default";
@@ -72,7 +73,7 @@
 
 		ti,bq2560x,software-jeita-supported;
 
-		qcom,thermal-mitigation = <1740 1520 1220 920 620 0>;
+		ti,thermal-mitigation = <1740 1520 1220 920 620 0>;
 	};
 };
 
