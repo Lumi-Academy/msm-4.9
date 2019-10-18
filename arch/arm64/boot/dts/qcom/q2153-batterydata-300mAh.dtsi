@@ -3,7 +3,7 @@ qcom,VinSmart-SugarcaneV330-4183463-3520mAh-VBMS-batterydata {
 	qcom,battery-type = "VinSmart_SugarcaneV330_4183463_3520mAh_VBMS";
 	qcom,batt-id-kohm = <10>;
 	qcom,chg-term-ua = <240000>;
-	qcom,default-rbatt-mohm = <170>;
+	qcom,default-rbatt-mohm = <125>;
 	qcom,fcc-mah = <3520>;
 	qcom,max-voltage-uv = <4400000>;
 	qcom,rbatt-capacitive-mohm = <50>;
