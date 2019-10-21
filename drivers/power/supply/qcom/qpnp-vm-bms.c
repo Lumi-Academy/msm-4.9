@@ -2313,6 +2313,7 @@ static enum power_supply_property bms_power_props[] = {
 	POWER_SUPPLY_PROP_CHARGE_COUNTER,
 	POWER_SUPPLY_PROP_CHARGE_FULL,
 	POWER_SUPPLY_PROP_RESISTANCE_ID,
+	POWER_SUPPLY_PROP_PRESENT,
 };
 
 static int
@@ -2402,6 +2403,9 @@ static int qpnp_vm_bms_power_get_property(struct power_supply *psy,
 		break;
 	case POWER_SUPPLY_PROP_RESISTANCE_ID:
 		val->intval = chip->batt_id_ohm;
+		break;
+	case POWER_SUPPLY_PROP_PRESENT:
+		val->intval = is_battery_present(chip);
 		break;
 	default:
 		return -EINVAL;
