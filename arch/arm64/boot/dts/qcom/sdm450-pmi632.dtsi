@@ -275,8 +275,8 @@
 				type = "passive";
 			};
 			quiet_batt_trip3: quiet_batt-trip3 {
-				temperature = <48000>;
-				hysteresis = <3500>;
+				temperature = <46000>;
+				hysteresis = <2000>;
 				type = "passive";
 			};
 			quiet_cpus_trip: quiet_cpus-trip {
@@ -290,11 +290,16 @@
 				type = "passive";
 			};
 			quiet_batt_trip4: quiet_batt-trip4 {
-				temperature = <49000>;
-				hysteresis = <2000>;
+				temperature = <47000>;
+				hysteresis = <1000>;
 				type = "passive";
 			};
 			quiet_batt_trip5: quiet_batt-trip5 {
+				temperature = <49000>;
+				hysteresis = <1000>;
+				type = "passive";
+			};
+			quiet_batt_trip6: quiet_batt-trip6 {
 				temperature = <52000>;
 				hysteresis = <3000>;
 				type = "passive";
@@ -374,11 +379,15 @@
 			};
 			battery_lvl4 {
 				trip = <&quiet_batt_trip4>;
-				cooling-device = <&pmi632_charger 3 4>;
+				cooling-device = <&pmi632_charger 3 3>;
 			};
 			battery_lvl5 {
 				trip = <&quiet_batt_trip5>;
-				cooling-device = <&pmi632_charger 4 5>;
+				cooling-device = <&pmi632_charger 5 5>;
+			};
+			battery_lvl6 {
+				trip = <&quiet_batt_trip6>;
+				cooling-device = <&pmi632_charger 6 6>;
 			};
 		};
 	};
