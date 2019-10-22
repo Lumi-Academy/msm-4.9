@@ -89,6 +89,15 @@
 		status = "okay";
 		};
 	};
+
+	qcom,board_id {
+		compatible = "qcom,board_id";
+		board_id0_read = <&tlmm 98 0>;
+		board_id1_read = <&tlmm 99 0>;
+		board_id2_read = <&tlmm 96 0>;
+		board_id3_read = <&tlmm 97 0>;
+		status = "ok";
+	};
 };
 
 &tlmm {
