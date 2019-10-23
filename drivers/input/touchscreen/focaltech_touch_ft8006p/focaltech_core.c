@@ -1615,6 +1615,8 @@ static int fts_ts_resume(struct device *dev)
         fts_power_source_resume(ts_data);
 #endif
         fts_reset_proc(200);
+    } else {
+        fts_reset_proc(50);
     }
     fts_wait_tp_to_valid();
     fts_ex_mode_recovery(ts_data);
