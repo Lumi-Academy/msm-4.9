@@ -1115,7 +1115,7 @@ static int bq2560x_update_charging_profile(struct bq2560x *bq)
 	}
 #endif
 	if (bq->therm_lvl_sel > 0
-			&& bq->therm_lvl_sel < (bq->thermal_levels - 1))
+			&& bq->therm_lvl_sel < bq->thermal_levels)
 		/*
 		 * consider thermal limit only when it is active and not at
 		 * the highest level
